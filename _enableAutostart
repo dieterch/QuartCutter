@@ -1,1 +1,5 @@
-systemctl enable webcutter
+cp quartcutter.service /etc/systemd/system
+systemctl start quartcutter
+systemctl enable quartcutter
+systemctl daemon-reload
+

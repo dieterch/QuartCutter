@@ -1,1 +1,1 @@
-systemctl disable webcutter
+systemctl disable quartcutter

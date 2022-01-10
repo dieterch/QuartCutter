@@ -1,0 +1,12 @@
+[Unit]
+Description=Quart run instance to serve QuartCutter
+After=network-online.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/root/prog/python/QuartCutter
+ExecStart=/root/prog/python/QuartCutter/venv/bin/python App.py
+
+[Install]
+WantedBy=multi-user.target
