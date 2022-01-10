@@ -47,7 +47,6 @@ class CutterInterface:
 		else:
 			share, path, file = self._path_plit(movie)
 			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "") + self._filename(movie)		
-			#return os.path.dirname(__file__) + "/mnt/" + self._filename(movie)
 
 	def _cutfilename(self,movie):
 		"""
@@ -69,7 +68,6 @@ class CutterInterface:
 		else:
 			share, path, file = self._path_plit(movie)
 			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "") + self._cutfilename(movie)	
-			#return os.path.dirname(__file__) + "/mnt/" + self._cutfilename(movie)
 
 	def mount(self, movie):
 		m = PlexInterface.movie_rec(movie)
@@ -78,16 +76,8 @@ class CutterInterface:
 		else:
 			share, path, file = self._path_plit(movie)
 			source = f"//{self._server}/{share}"
-			####source = f"//{self._server}/{'/'.join(m['locations'][0].split('/')[2:-1])}"
-			#print(f'*****source://{self._server}/{share}')
 			target = os.path.dirname(__file__) + "/mnt/"
-			#print(f'*****target:{target}')
-			#print(f'*****fullpath:{self._pathname(movie)}')
-			#print(f'******cutpath:{self._cutname(movie)}')
 			mount_lst = ["mount","-t","cifs", "-o", "credentials=/etc/smbcredentials", f"{source}", f"{target}"]
-#			print()
-#			print(" ".join(mount_lst))
-#			print()
 		try:
 			if not os.path.exists(self._pathname(movie)):
 				# beim ersten mount oder wenn die section sich ändert ...
@@ -109,9 +99,6 @@ class CutterInterface:
 	def umount(self):
 		target = os.path.dirname(__file__) + "/mnt/"
 		umount_lst = ["umount","-l",f"{target}"]		
-#		print()
-#		print(" ".join(umount_lst))
-#		print()
 		try:
 			res = subprocess.check_output(umount_lst)
 			print(f"{target} unmounted.")
@@ -141,6 +128,29 @@ class CutterInterface:
 			#self.umount()
 			t1 = time.time()
 			print(f"In frame:{(t1-t0):5.2f} sec.")
+			return frame_name
+
+	async def aframe(self,movie, ftime, target = None):
+		t0 = time.time()
+		#frame_name = 'guid' + PlexInterface.movie_rec(movie)['guid'] + '_' + str(ftime).replace(':','-') + '.jpg'
+		frame_name = 'frame.jpg'
+		if target == None:
+			target = os.path.dirname(__file__) + "/data/"
+		target += frame_name
+		exc_lst = [self._ffmpeg_binary,"-ss", ftime, "-i", f"{self._pathname(movie)}", 
+			"-vframes", "1", "-q:v", "15", "-vf" ,"scale=1024:-1",f"{target}", "-hide_banner", "-loglevel", "fatal", 
+			"-max_error_rate","1","-y" ]
+		self.mount(movie)
+		try:
+			res = await subprocess.check_output(exc_lst)
+			res = res.decode('utf-8')
+			print(res)
+		except subprocess.CalledProcessError as err:
+			print(str(err))
+		finally:
+			#self.umount()
+			t1 = time.time()
+			print(f"\nIn aframe:{(t1-t0):5.2f} sec.")
 			return frame_name
 
 	def _apsc(self,movie):

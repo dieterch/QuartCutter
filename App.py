@@ -127,7 +127,7 @@ async def get_frame():
         movie_name = req['movie_name']
         m = await _update_movie(movie_name)
         try:
-            pic_name = cutter.frame(m ,pos_time ,os.path.dirname(__file__) + "/static/")
+            pic_name = await cutter.aframe(m ,pos_time ,os.path.dirname(__file__) + "/static/")
             ret = { 'frame': url_for('static', filename=pic_name) }
             print(f"frame: {req} -> {ret}")
             return ret
@@ -212,4 +212,7 @@ if __name__ == '__main__':
     try:
         asyncio.run(app.run_task(use_reloader=True, host='0.0.0.0', port=5100, debug=True))
     finally:
-        cutter.umount()
+        try:
+            cutter.umount()
+        except Exception:
+            pass
