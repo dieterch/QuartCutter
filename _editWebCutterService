@@ -1,0 +1,2 @@
+mcedit /etc/systemd/system/webcutter.service
+systemctl daemon-reload
