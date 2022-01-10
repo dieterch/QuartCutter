@@ -13,20 +13,12 @@ class CutterInterface:
 		self._reconstruct_apsc_binary = os.path.dirname(__file__) + '/bin/reconstruct_apsc'
 		self._ffmpeg_binary = '/usr/bin/ffmpeg'
 
-	def _psplit(self, loc):
-		hlp = loc[0].split('/')
-		share = "/".join(hlp[1:3])
+	def _path_plit(self, movie):
+		hlp = movie.locations[0].split('/')
+		share = "/".join(hlp[2:3])
 		folder = "/".join(hlp[3:-1])
 		file = hlp[-1]
 		return (share, folder, file)
-
-	def _mountsection(self,movie):
-		section = movie.librarySectionTitle
-		share, folder, file = self._psplit(movie.locations) 
-		#wenn der pfad existiert, nix mounten
-		#wenn eine andere library gemountet ist, unmounten
-		#und die neue libraray mounten. 
-		#pfad und filenamen berechnen und zrückgeben 
 
 	def _call(self, exc_lst):
 		try:
@@ -53,7 +45,9 @@ class CutterInterface:
 		if len(m['locations']) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
-			return os.path.dirname(__file__) + "/mnt/" + self._filename(movie)
+			share, path, file = self._path_plit(movie)
+			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "") + self._filename(movie)		
+			#return os.path.dirname(__file__) + "/mnt/" + self._filename(movie)
 
 	def _cutfilename(self,movie):
 		"""
@@ -73,22 +67,41 @@ class CutterInterface:
 		if len(m['locations']) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
-			return os.path.dirname(__file__) + "/mnt/" + self._cutfilename(movie)
+			share, path, file = self._path_plit(movie)
+			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "") + self._cutfilename(movie)	
+			#return os.path.dirname(__file__) + "/mnt/" + self._cutfilename(movie)
 
 	def mount(self, movie):
 		m = PlexInterface.movie_rec(movie)
 		if len(m['locations']) > 1:
 			raise ValueError('cannot cut multiple Files in movie folder')
 		else:
-			source = f"//{self._server}/{'/'.join(m['locations'][0].split('/')[2:-1])}"
+			share, path, file = self._path_plit(movie)
+			source = f"//{self._server}/{share}"
+			####source = f"//{self._server}/{'/'.join(m['locations'][0].split('/')[2:-1])}"
+			#print(f'*****source://{self._server}/{share}')
 			target = os.path.dirname(__file__) + "/mnt/"
+			#print(f'*****target:{target}')
+			#print(f'*****fullpath:{self._pathname(movie)}')
+			#print(f'******cutpath:{self._cutname(movie)}')
 			mount_lst = ["mount","-t","cifs", "-o", "credentials=/etc/smbcredentials", f"{source}", f"{target}"]
 #			print()
 #			print(" ".join(mount_lst))
 #			print()
 		try:
-			res = subprocess.check_output(mount_lst)
-			return res
+			if not os.path.exists(self._pathname(movie)):
+				# beim ersten mount oder wenn die section sich ändert ...
+				print('******remounting necessary')				
+				try:
+					self.umount()
+				except subprocess.CalledProcessError as e:
+					print(f'***** neglecting error by intention ****')
+
+				res = subprocess.check_output(mount_lst)
+				print(f"{source} mounted.")
+				return res
+			else:
+				print('******no mounting needed')
 		except subprocess.CalledProcessError as e:
 			print(str(e))
 			raise e
@@ -101,19 +114,21 @@ class CutterInterface:
 #		print()
 		try:
 			res = subprocess.check_output(umount_lst)
+			print(f"{target} unmounted.")
 			return res
 		except subprocess.CalledProcessError as e:
 			print(str(e))
 			raise e
 
 	def frame(self,movie, ftime, target = None):
+		t0 = time.time()
 		#frame_name = 'guid' + PlexInterface.movie_rec(movie)['guid'] + '_' + str(ftime).replace(':','-') + '.jpg'
 		frame_name = 'frame.jpg'
 		if target == None:
 			target = os.path.dirname(__file__) + "/data/"
 		target += frame_name
 		exc_lst = [self._ffmpeg_binary,"-ss", ftime, "-i", f"{self._pathname(movie)}", 
-			"-vframes", "1", "-q:v", "2", f"{target}", "-hide_banner", "-loglevel", "fatal", 
+			"-vframes", "1", "-q:v", "15", "-vf" ,"scale=1024:-1",f"{target}", "-hide_banner", "-loglevel", "fatal", 
 			"-max_error_rate","1","-y" ]
 		self.mount(movie)
 		try:
@@ -123,7 +138,9 @@ class CutterInterface:
 		except subprocess.CalledProcessError as err:
 			print(str(err))
 		finally:
-			self.umount()
+			#self.umount()
+			t1 = time.time()
+			print(f"In frame:{(t1-t0):5.2f} sec.")
 			return frame_name
 
 	def _apsc(self,movie):
@@ -134,7 +151,8 @@ class CutterInterface:
 		except FileNotFoundError as e:
 			print(str(e))
 		finally:
-			self.umount()
+			pass
+			#self.umount()
 
 	def _cutfile(self,movie):
 		#check ob *_cut.ts Datei existiert.
@@ -144,7 +162,8 @@ class CutterInterface:
 		except FileNotFoundError as e:
 			print(str(e))
 		finally:
-			self.umount()
+			pass
+			#self.umount()
 
 	def _reconstruct_apsc(self, movie):
 		print()
@@ -207,7 +226,7 @@ class CutterInterface:
 			if ((inplace == True) and (os.path.exists(self._cutname(movie)))):
 				try:
 					os.remove(self._cutname(movie))
-					restxt += f"{self._cutfilename(movie)} cut successful, *_cut.ts file deleted.\n"
+					restxt += f"cut successful, *_cut.ts file deleted.\n"
 				except FileNotFoundError as e:
 					print(str(e))
 
@@ -219,4 +238,5 @@ class CutterInterface:
 		except subprocess.CalledProcessError as e:
 			raise e
 		finally:
-			self.umount()
+			pass
+			#self.umount()

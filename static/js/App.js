@@ -117,6 +117,7 @@
         methods: {
             test() {
                 this.show_close_button = true
+                this.result_available = false
                 this.movie_cut_info_promise()
                 .then(response => {
                     this.lmovie_cut_info = response.data;
@@ -137,30 +138,26 @@
                         headers: { 'Content-type': 'application/json', }
                     }).then((response) => {
                             //console.log('section: ' + this.section);
-                            this.loadmovies();
+                            this.load_selection();
                     }).catch( error => { 
                             console.log('error: ' + error); 
                     });
                 },
-            force_update_section() {
+            load_selection() {
                 axios
-                    .get(`${Vue.prototype.$host}/force_update_section`)
-                    .then(response => {
-                        console.log(response.data)
-                    }).catch( error => { 
-                        console.log('error: ' + error); 
-                    });
-            },
-            loadmovies() {
-                axios
-                    .get(`${Vue.prototype.$host}/movies`)
-                    .then(response => {
-                        //console.log(response.data)
-                        this.movies = response.data.movies;
-                        this.lmovie = response.data.movie;
-                    }).catch( error => { 
-                        console.log('error: ' + error); 
-                    });
+                //.get(`${Vue.prototype.$host}/sections`)
+                .get(`${Vue.prototype.$host}/selection`)
+                .then(response => {
+                    //console.log('in created', response.data)
+                    this.sections = response.data.sections;
+                    this.section = response.data.section;
+                    this.movies = response.data.movies;
+                    this.movie = response.data.movie;
+                    this.pos = str2pos(response.data.pos_time)
+                    //this.loadmovies()
+                }).catch( error => { 
+                    console.log('error: ' + error); 
+                });
             },
             load_movie_info_promise() {
                 return axios.post(`${Vue.prototype.$host}/movie_info`,
@@ -231,7 +228,7 @@ movie: '${this.lmovie}'
 In: ${this.t0}
 Out: ${this.t1}
 Inplace: ${this.inplace}
-Reconstruct: ${this.lmovie_cut_info.apsc}
+.ap .sc Files?: ${this.lmovie_cut_info.apsc}
 _cut File ?: ${this.lmovie_cut_info.cutfile}
 `
                     console.log(msg)
@@ -263,16 +260,7 @@ _cut File ?: ${this.lmovie_cut_info.cutfile}
                 }
             },
             created() {
-                axios
-                .get(`${Vue.prototype.$host}/sections`)
-                .then(response => {
-                    //console.log(response.data)
-                    this.sections = response.data.sections;
-                    this.section = response.data.section;
-                    this.loadmovies()
-                }).catch( error => { 
-                    console.log('error: ' + error); 
-                });
+                this.load_selection()
             },
             delimiters: ['[[',']]']
         })

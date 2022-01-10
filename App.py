@@ -27,10 +27,22 @@ selection = {
     'section' : initial_section,
     'movies' : initial_section.recentlyAdded(),
     'movie' : initial_movie,
-    'pos_time' : '00:00:00',
-    'frame'  : 'frame.jpg',
-    'eta' : 0 
+    'pos_time' : '00:00:00'
+    #'frame'  : 'frame.jpg'
+    #'eta' : 0 
     }
+
+
+@app.route("/selection")
+async def get_selection():
+    global selection
+    return { 
+        'sections': [s.title for s in selection['sections']], 
+        'section': selection['section'].title,
+        'movies': [m.title for m in selection['movies']], 
+        'movie': selection['movie'].title,
+        'pos_time' : selection['pos_time']    
+        }
 
 # section related stuff
 async def _update_section(section_name, force=False):
@@ -64,10 +76,10 @@ async def force_update_section():
     print(f"force_update_section.")
     return 'force update section'
 
-@app.route("/sections")
-async def get_sections():
-    global selection
-    return { 'sections': [s.title for s in selection['sections']], 'section': selection['section'].title }
+# @app.route("/sections")
+# async def get_sections():
+#     global selection
+#     return { 'sections': [s.title for s in selection['sections']], 'section': selection['section'].title }
 
 # movie related stuff
 async def _update_movie(movie_name):
@@ -81,10 +93,10 @@ async def _update_movie(movie_name):
     selection['movie'] = sel_movie
     return selection['movie']
 
-@app.route("/movies")
-async def get_movies():
-    global selection
-    return { 'movies': [m.title for m in selection['movies']], 'movie': selection['movie'].title }
+# @app.route("/movies")
+# async def get_movies():
+#     global selection
+#     return { 'movies': [m.title for m in selection['movies']], 'movie': selection['movie'].title }
 
 @app.route("/movie_info", methods=['POST'])
 async def set_movie_get_info():
@@ -134,7 +146,7 @@ async def get_movie_cut_info():
     global selection
     m = selection['movie']
     dmin = m.duration / 60000
-    apsc = not cutter._apsc(m)
+    apsc = cutter._apsc(m)
     cutfile = cutter._cutfile(m)
     eta_apsc = int((0.5 if not apsc else 0) * dmin)
     eta_cut =  int(0.7 * dmin)
@@ -197,4 +209,7 @@ if __name__ == '__main__':
 ************************************************
 ''')
     #app.run(use_reloader=True, host='0.0.0.0', port=5000, debug=True, threaded=False)
-    asyncio.run(app.run_task(use_reloader=True, host='0.0.0.0', port=5100, debug=True))
+    try:
+        asyncio.run(app.run_task(use_reloader=True, host='0.0.0.0', port=5100, debug=True))
+    finally:
+        cutter.umount()

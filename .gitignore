@@ -153,5 +153,5 @@ cython_debug/
 #.idea/
 
 # keine gemounteten files
-webcutter/mnt/*
-!webcutter/mnt/.keep
+webcutter2/mnt/*
+!webcutter2/mnt/.keep
