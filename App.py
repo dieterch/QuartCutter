@@ -118,6 +118,26 @@ async def set_movie_get_info():
         print(f"\nmovie_info: {req} -> \n{pf(m_info)}")
         return m_info       
 
+@app.route("/timeline", methods=['POST'])
+async def timeline():
+    global selection
+    t0 = time.time()
+    if request.method == 'POST':
+        req = await request.json
+        pos = int(req['pos'])
+        l = int(req['l'])
+        r = int(req['r'])
+        step = int(req['step'])
+        size = req['size']
+        tl = cutter.gen_timeline(cutter.pos2str(pos), l, r, step)
+        m = selection['movie']
+        target = 'test.gif'
+        r = cutter.timeline(m, target , size, tl)
+        print(r)
+        t1 = time.time()
+        print(f"total:{(t1-t0):5.2f}")
+    return r   
+
 @app.route("/frame", methods=['POST'])
 async def get_frame():
     global selection

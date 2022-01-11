@@ -170,6 +170,25 @@
                     }
                 })
             },
+            timeline(mypos) {
+                axios.post(`${Vue.prototype.$host}/timeline`,
+                    { 
+                        pos: mypos,
+                        l: 0,
+                        r: 4,
+                        step: 1,
+                        size: '100'
+                    },
+                    { headers: {
+                    'Content-type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    console.log('in timeline', response.data)
+                }).catch( error => { 
+                    console.log('error: ' + error); 
+                });
+            },
             movie_cut_info_promise() {
                 return axios.get(`${Vue.prototype.$host}/movie_cut_info`)
             },

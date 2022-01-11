@@ -3,8 +3,9 @@ import asyncio
 from webcutter2.dplex import PlexInterface
 import os
 import time
+import concurrent.futures
 import subprocess
-
+import shlex
 
 class CutterInterface:
 	def __init__(self, server):
@@ -107,7 +108,49 @@ class CutterInterface:
 			print(str(e))
 			raise e
 
-	def frame(self,movie, ftime, target = None):
+	def pos2str(self,pos):
+		return f"{(pos // 3600):02d}:{((pos % 3600) // 60):02d}:{(pos % 60):02d}"
+
+	def str2pos(self,ps):
+		return int(ps[:2])*3600 + int(ps[3:5])*60 + int(ps[-2:])
+
+	def dstr(self,ps,ds):
+		return self.pos2str(self.str2pos(ps) + ds)
+
+	def gen_timeline(self,ftime, l, r ,step):
+		return [self.dstr(ftime,delta) for delta in range(l*step,(r+1)*step,step)]
+
+	def frame(self, ftime, scale, movie, target=None):
+		t0 = time.time()
+		target = os.path.dirname(__file__) + "/data/" + target     # das stimmt noch nicht !
+
+		ffstr2 = f"""ffmpeg -ss {ftime} -i '{self._pathname(movie)}' -vframes 1 -q:v 15 \
+-vf "scale={scale}:-1, drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf: \
+x=(w-text_w)/2: y=(h-text_h)*0.98: fontsize=18: fontcolor=yellow: \
+text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O')}':" {target} \
+-hide_banner -loglevel fatal -max_error_rate 1 -y"""
+
+		exc_lst = shlex.split(ffstr2)
+		try:
+			subprocess.check_output(exc_lst)
+		except subprocess.CalledProcessError as err:
+			print(str(err))
+			raise(err)
+		finally:
+			t1 = time.time()
+			return f"{(t1-t0):5.2f}"
+
+	def timeline(self, movie, target, size, timelist):
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			futures = []
+			for ftime in timelist:
+				futures.append(executor.submit(self.frame, ftime, size, movie, target[:-4] + '_' + ftime + target[-4:]))
+			result = []
+			for future in concurrent.futures.as_completed(futures):
+				result.append(future.result())
+		return 'ok'
+
+	def oframe(self,movie, ftime, target = None):
 		t0 = time.time()
 		#frame_name = 'guid' + PlexInterface.movie_rec(movie)['guid'] + '_' + str(ftime).replace(':','-') + '.jpg'
 		frame_name = 'frame.jpg'
