@@ -91,7 +91,7 @@
     <!-- cut Movie Action Bar START -->
     <div class="row g-2 row-cols-7 justify-content-lg-center mt-1">
 
-        <div class="col badge bg-dark me-1"><button class="btn btn-dark btn-sm" @click="timeline(lpos)">[[ lmovie_info.duration ]] min</button></div>
+        <div class="col badge bg-dark me-1"><button class="btn btn-dark btn-sm">[[ lmovie_info.duration ]] min</button></div>
 
         <div class="col badge bg-primary me-1" v-if="t0_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">[[ t0 ]] In </button></div>
         <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">--:--:-- In </button></div>
@@ -109,6 +109,10 @@
         <div class="col badge bg-light col-1 me-1"><button class="btn btn-outline-secondary btn-sm" @click="test" notdisabled>[[ Math.trunc(lpos / 60) ]] min</button></div>
         <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="lpos = pos_from_end(0)">E</button></div>
 
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="page_minus_timeline(lpos)"><</button></div>        
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="toggle_and_timeline(lpos)">@</button></div>
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="page_plus_timeline(lpos)">></button></div>        
+
     </div>
     <!-- cut Movie Action Bar ENDE -->
 
@@ -119,6 +123,11 @@
             <button :class="b.class" v-for="b in bright" @click="hpos(b)">[[ b.name ]]</button>     
     </div>
     <!-- cut Movie Timeline ENDE -->
+
+    <div class="row g-0 m-0 p-0" v-if="toggle_timeline">
+        <a v-for="ival in ltimeline.larray" class="col" @click="hpos({val: ival, type:'abs'})"><img  :src="pos2fname(ival)" class="mx-auto" width="100%"></a>
+    </div>
+
 
     <!-- Frame START -->    
     <div class="row g-2 mt-1">

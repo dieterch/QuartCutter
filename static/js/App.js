@@ -39,7 +39,16 @@
             frame_name: '',
             result_available: false,
             result:'',
-            show_close_button: false
+            show_close_button: false,
+            toggle_timeline: false,
+            ltimeline: {
+                basename: 'frame.gif',
+                larray: [],
+                l: -4,
+                r: 4,
+                step: 1,
+                size: '160'
+            }
         },
         computed: {
             totalsections() {
@@ -170,24 +179,53 @@
                     }
                 })
             },
+            pos2fname(pos) {
+                return  '/static/' + this.ltimeline.basename.slice(0,-4) + '_' + pos2str(pos) + this.ltimeline.basename.slice(-4) + '?' + String(Math.random())
+            },
+            page_minus_timeline() {
+                this.lpos += this.ltimeline.l * this.ltimeline.step
+                this.timeline(this.lpos)
+            },
+            page_plus_timeline() {
+                this.lpos += this.ltimeline.r * this.ltimeline.step
+                this.timeline(this.lpos)
+            },
+            toggle_and_timeline(mypos) {
+                this.toggle_timeline = !this.toggle_timeline
+                this.timeline(mypos)
+            },
             timeline(mypos) {
-                axios.post(`${Vue.prototype.$host}/timeline`,
-                    { 
-                        pos: mypos,
-                        l: 0,
-                        r: 4,
-                        step: 1,
-                        size: '100'
-                    },
-                    { headers: {
-                    'Content-type': 'application/json',
+                if (this.toggle_timeline) {
+                    this.ltimeline.larray = []
+                    sarray = []
+                    for (p=this.ltimeline.l;p <=this.ltimeline.r;p+=1) {
+                        val = mypos + p*Math.abs(this.ltimeline.step)
+                        val = (val >=0 ) ? val : 0
+                        val = (val < this.pos_from_end(0)) ? val : this.pos_from_end(0) - 1
+                        this.ltimeline.larray.push(val)
+                        sarray.push(this.pos2fname(val))
                     }
-                })
-                .then(response => {
-                    console.log('in timeline', response.data)
-                }).catch( error => { 
-                    console.log('error: ' + error); 
-                });
+                    console.log(this.ltimeline.larray)
+                    console.log(sarray)
+                    axios.post(`${Vue.prototype.$host}/timeline`,
+                        { 
+                            basename: this.ltimeline.basename,
+                            pos: mypos,
+                            l: this.ltimeline.l,
+                            r: this.ltimeline.r,
+                            step: this.ltimeline.step,
+                            size: this.ltimeline.size
+                        },
+                        { headers: {
+                        'Content-type': 'application/json',
+                        }
+                    })
+                    .then(response => {
+                        console.log('in timeline', response.data)
+                    }).catch( error => { 
+                        console.log('error: ' + error); 
+                    });
+                }
             },
             movie_cut_info_promise() {
                 return axios.get(`${Vue.prototype.$host}/movie_cut_info`)
@@ -201,6 +239,8 @@
             hpos(b) {
                 if (b.type == "rel") {
                     this.lpos += b.val
+                    this.ltimeline.step = Math.abs(b.val)
+                    this.toggle_timeline = false 
                     // console.log(this.lpos)
                     this.lpos = (this.lpos >= 0) ? this.lpos : 0
                     this.lpos = (this.lpos <= this.pos_from_end(0)) ? this.lpos : this.pos_from_end(0)

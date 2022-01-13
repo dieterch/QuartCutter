@@ -13,6 +13,7 @@ class CutterInterface:
 		self._mcut_binary = os.path.dirname(__file__) + '/bin/mcut'
 		self._reconstruct_apsc_binary = os.path.dirname(__file__) + '/bin/reconstruct_apsc'
 		self._ffmpeg_binary = '/usr/bin/ffmpeg'
+		self.last_timeline = []
 
 	def _path_plit(self, movie):
 		hlp = movie.locations[0].split('/')
@@ -120,16 +121,13 @@ class CutterInterface:
 	def gen_timeline(self,ftime, l, r ,step):
 		return [self.dstr(ftime,delta) for delta in range(l*step,(r+1)*step,step)]
 
-	def frame(self, ftime, scale, movie, target=None):
+	def frame(self, ftime, scale, movie, target):
 		t0 = time.time()
-		target = os.path.dirname(__file__) + "/data/" + target     # das stimmt noch nicht !
-
-		ffstr2 = f"""ffmpeg -ss {ftime} -i '{self._pathname(movie)}' -vframes 1 -q:v 15 \
+		ffstr2 = f"""ffmpeg -ss {ftime} -i "{self._pathname(movie)}" -vframes 1 -q:v 15 \
 -vf "scale={scale}:-1, drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf: \
 x=(w-text_w)/2: y=(h-text_h)*0.98: fontsize=18: fontcolor=yellow: \
-text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O')}':" {target} \
+text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O')}':" '{target}' \
 -hide_banner -loglevel fatal -max_error_rate 1 -y"""
-
 		exc_lst = shlex.split(ffstr2)
 		try:
 			subprocess.check_output(exc_lst)
@@ -141,13 +139,19 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			return f"{(t1-t0):5.2f}"
 
 	def timeline(self, movie, target, size, timelist):
-		with concurrent.futures.ThreadPoolExecutor() as executor:
-			futures = []
-			for ftime in timelist:
-				futures.append(executor.submit(self.frame, ftime, size, movie, target[:-4] + '_' + ftime + target[-4:]))
-			result = []
-			for future in concurrent.futures.as_completed(futures):
-				result.append(future.result())
+		#print(target)
+		#print(os.path.basename(target), os.path.dirname(target) )
+		if not bool(set(timelist).intersection(self.last_timeline)):
+			for file in os.listdir(os.path.dirname(target)):
+				if file.startswith(os.path.basename(target)[:-4] + '_'):
+					os.remove(os.path.dirname(target) + '/' + file)
+			with concurrent.futures.ThreadPoolExecutor() as executor:
+				futures = []
+				for ftime in timelist:
+					futures.append(executor.submit(self.frame, ftime, size, movie, target[:-4] + '_' + ftime + target[-4:]))
+				result = []
+				for future in concurrent.futures.as_completed(futures):
+					result.append(future.result())
 		return 'ok'
 
 	def oframe(self,movie, ftime, target = None):

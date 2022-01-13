@@ -7,6 +7,7 @@ import time
 import subprocess
 from pprint import pprint as pp
 from pprint import pformat as pf
+from random import randint
 
 fileserver = '192.168.15.10'
 baseurl = 'http://192.168.15.10:32400'
@@ -124,6 +125,8 @@ async def timeline():
     t0 = time.time()
     if request.method == 'POST':
         req = await request.json
+        #print(pf(req))
+        basename = str(req['basename'])
         pos = int(req['pos'])
         l = int(req['l'])
         r = int(req['r'])
@@ -131,7 +134,7 @@ async def timeline():
         size = req['size']
         tl = cutter.gen_timeline(cutter.pos2str(pos), l, r, step)
         m = selection['movie']
-        target = 'test.gif'
+        target = os.path.dirname(__file__) + "/static/"+ basename
         r = cutter.timeline(m, target , size, tl)
         print(r)
         t1 = time.time()
@@ -228,7 +231,7 @@ if __name__ == '__main__':
 * Async Backend for Webcutter                  *
 ************************************************
 ''')
-    #app.run(use_reloader=True, host='0.0.0.0', port=5000, debug=True, threaded=False)
+    #app.run(use_reloader=True, host='0.0.0.0', port=5100, debug=True, threaded=False)
     try:
         asyncio.run(app.run_task(use_reloader=True, host='0.0.0.0', port=5100, debug=True))
     finally:
