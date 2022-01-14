@@ -182,7 +182,9 @@
             pos2fname(pos) {
                 if (pos === -999) {
                     return '/static/spinning-loading.gif'
-                } else {
+                } else if (pos === -998) {
+                    return '/static/white.png'
+                } else  {
                     return  '/static/' + this.ltimeline.basename.slice(0,-4) + '_' + pos2str(pos) + this.ltimeline.basename.slice(-4) + '?' + String(Math.random())
                 }
             },
@@ -214,8 +216,8 @@
                 this.timeline(mypos)
             },
             posvalid(val) {
-                val = (val >=0 ) ? val : -999 //0
-                val = (val <= this.pos_from_end(0)) ? val : -999 //this.pos_from_end(0)
+                val = (val >=0 ) ? val : -998 //0
+                val = (val <= this.pos_from_end(0)) ? val : -998 //this.pos_from_end(0)
                 return val
             },
             timeline(mypos) {
@@ -239,7 +241,7 @@
                         }
                     })
                     .then(response => {
-                        console.log('promise timeline resolved', response.data)
+                        // console.log('promise timeline resolved', response.data)
                         this.ltimeline.larray.length = 0
                         for (p=this.ltimeline.l;p <=this.ltimeline.r;p+=1) {
                             val = mypos + p*Math.abs(this.ltimeline.step)
