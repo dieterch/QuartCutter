@@ -180,33 +180,51 @@
                 })
             },
             pos2fname(pos) {
-                return  '/static/' + this.ltimeline.basename.slice(0,-4) + '_' + pos2str(pos) + this.ltimeline.basename.slice(-4) + '?' + String(Math.random())
+                if (pos === -999) {
+                    return '/static/spinning-loading.gif'
+                } else {
+                    return  '/static/' + this.ltimeline.basename.slice(0,-4) + '_' + pos2str(pos) + this.ltimeline.basename.slice(-4) + '?' + String(Math.random())
+                }
+            },
+            tostart() {
+                this.lpos = 0
+                this.timeline(this.lpos)                
+            },
+            toend() {
+                this.lpos = this.pos_from_end(0)             
+                this.timeline(this.lpos)                
             },
             page_minus_timeline() {
-                this.lpos += this.ltimeline.l * this.ltimeline.step
-                this.timeline(this.lpos)
+                if (this.lpos > 0) {
+                    this.lpos += this.ltimeline.l * this.ltimeline.step
+                    this.lpos = this.posvalid(this.lpos)                
+                    this.timeline(this.lpos)
+                }
             },
             page_plus_timeline() {
-                this.lpos += this.ltimeline.r * this.ltimeline.step
-                this.timeline(this.lpos)
+                if (this.lpos < this.pos_from_end(0)) {
+                    this.lpos += this.ltimeline.r * this.ltimeline.step
+                    this.lpos = this.posvalid(this.lpos)
+                    this.timeline(this.lpos)
+                }
             },
             toggle_and_timeline(mypos) {
                 this.toggle_timeline = !this.toggle_timeline
+                this.lpos = this.posvalid(this.lpos)
                 this.timeline(mypos)
+            },
+            posvalid(val) {
+                val = (val >=0 ) ? val : -999 //0
+                val = (val <= this.pos_from_end(0)) ? val : -999 //this.pos_from_end(0)
+                return val
             },
             timeline(mypos) {
                 if (this.toggle_timeline) {
-                    this.ltimeline.larray = []
-                    sarray = []
+                    this.ltimeline.larray.length = 0
                     for (p=this.ltimeline.l;p <=this.ltimeline.r;p+=1) {
-                        val = mypos + p*Math.abs(this.ltimeline.step)
-                        val = (val >=0 ) ? val : 0
-                        val = (val < this.pos_from_end(0)) ? val : this.pos_from_end(0) - 1
-                        this.ltimeline.larray.push(val)
-                        sarray.push(this.pos2fname(val))
+                        this.ltimeline.larray.push(-999)
                     }
-                    console.log(this.ltimeline.larray)
-                    console.log(sarray)
+                    sarray = []
                     axios.post(`${Vue.prototype.$host}/timeline`,
                         { 
                             basename: this.ltimeline.basename,
@@ -221,7 +239,16 @@
                         }
                     })
                     .then(response => {
-                        console.log('in timeline', response.data)
+                        console.log('promise timeline resolved', response.data)
+                        this.ltimeline.larray.length = 0
+                        for (p=this.ltimeline.l;p <=this.ltimeline.r;p+=1) {
+                            val = mypos + p*Math.abs(this.ltimeline.step)
+                            val = this.posvalid(val)
+                            this.ltimeline.larray.push(val)
+                            sarray.push(this.pos2fname(val))
+                        }
+                        //console.log(this.ltimeline.larray)
+                        //console.log(sarray)
                     }).catch( error => { 
                         console.log('error: ' + error); 
                     });
@@ -237,16 +264,16 @@
                 this.t1_valid = false                 
             },
             hpos(b) {
+                // this.toggle_timeline = false 
                 if (b.type == "rel") {
                     this.lpos += b.val
                     this.ltimeline.step = Math.abs(b.val)
-                    this.toggle_timeline = false 
-                    // console.log(this.lpos)
-                    this.lpos = (this.lpos >= 0) ? this.lpos : 0
-                    this.lpos = (this.lpos <= this.pos_from_end(0)) ? this.lpos : this.pos_from_end(0)
+                    this.lpos = this.posvalid(this.lpos)
+                    this.timeline(this.lpos)                
                     // console.log(this.lpos)
                 } else if (b.type == "abs") {
-                    this.lpos = b.val 
+                    this.lpos = b.val
+                    this.timeline(this.lpos)                 
                 } else if (b.type == "t0")  {
                     this.t0 = this.pos
                     this.t0_valid = true 
@@ -256,6 +283,7 @@
                 } else {
                     alert("unknown type in hpos")
                 }
+
             },
             pos_from_end(dsec) {
                 return Math.trunc(this.lmovie_info.duration_ms / 1000 - 1 - dsec )

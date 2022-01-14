@@ -115,11 +115,14 @@ class CutterInterface:
 	def str2pos(self,ps):
 		return int(ps[:2])*3600 + int(ps[3:5])*60 + int(ps[-2:])
 
-	def dstr(self,ps,ds):
-		return self.pos2str(self.str2pos(ps) + ds)
+	def dstr(self, pos, max, ds):
+		val = pos + ds
+		val = val if val >=0 else 0
+		val = val if val < max else max - 1
+		return self.pos2str(val)
 
-	def gen_timeline(self,ftime, l, r ,step):
-		return [self.dstr(ftime,delta) for delta in range(l*step,(r+1)*step,step)]
+	def gen_timeline(self, max, pos, l, r ,step):
+		return [self.dstr(pos,max,delta) for delta in range(l*step,(r+1)*step,step)]
 
 	def frame(self, ftime, scale, movie, target):
 		t0 = time.time()

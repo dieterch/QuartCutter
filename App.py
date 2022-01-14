@@ -132,9 +132,10 @@ async def timeline():
         r = int(req['r'])
         step = int(req['step'])
         size = req['size']
-        tl = cutter.gen_timeline(cutter.pos2str(pos), l, r, step)
         m = selection['movie']
         target = os.path.dirname(__file__) + "/static/"+ basename
+        tl = cutter.gen_timeline(m.duration // 1000, pos, l, r, step)
+        #print(pf(tl))
         r = cutter.timeline(m, target , size, tl)
         print(r)
         t1 = time.time()
