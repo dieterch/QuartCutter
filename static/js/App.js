@@ -198,14 +198,14 @@
             },
             page_minus_timeline() {
                 if (this.lpos > 0) {
-                    this.lpos += this.ltimeline.l * this.ltimeline.step
+                    this.lpos += (this.ltimeline.l - this.ltimeline.r) * this.ltimeline.step
                     this.lpos = this.posvalid(this.lpos)                
                     this.timeline(this.lpos)
                 }
             },
             page_plus_timeline() {
                 if (this.lpos < this.pos_from_end(0)) {
-                    this.lpos += this.ltimeline.r * this.ltimeline.step
+                    this.lpos += (this.ltimeline.r - this.ltimeline.l) * this.ltimeline.step
                     this.lpos = this.posvalid(this.lpos)
                     this.timeline(this.lpos)
                 }
@@ -247,7 +247,7 @@
                             val = mypos + p*Math.abs(this.ltimeline.step)
                             val = this.posvalid(val)
                             this.ltimeline.larray.push(val)
-                            sarray.push(this.pos2fname(val))
+                            //sarray.push(this.pos2fname(val))
                         }
                         //console.log(this.ltimeline.larray)
                         //console.log(sarray)

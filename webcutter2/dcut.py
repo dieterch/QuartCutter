@@ -6,6 +6,7 @@ import time
 import concurrent.futures
 import subprocess
 import shlex
+from pprint import pformat as pf
 
 class CutterInterface:
 	def __init__(self, server):
@@ -13,7 +14,7 @@ class CutterInterface:
 		self._mcut_binary = os.path.dirname(__file__) + '/bin/mcut'
 		self._reconstruct_apsc_binary = os.path.dirname(__file__) + '/bin/reconstruct_apsc'
 		self._ffmpeg_binary = '/usr/bin/ffmpeg'
-		self.last_timeline = []
+		self.last_movie = ""
 
 	def _path_plit(self, movie):
 		hlp = movie.locations[0].split('/')
@@ -124,6 +125,32 @@ class CutterInterface:
 	def gen_timeline(self, max, pos, l, r ,step):
 		return [self.dstr(pos,max,delta) for delta in range(l*step,(r+1)*step,step)]
 
+	def fname2file(self, ftime, target):
+		return target[:-4] + '_' + ftime + target[-4:]
+
+	def filter_timelist(self, timelist, target):
+		return [ftime for ftime in timelist if not os.path.exists(self.fname2file(ftime, target))]
+		
+	def timeline(self, movie, target, size, timelist):
+		if movie.title != self.last_movie: 
+			for file in os.listdir(os.path.dirname(target)):
+				if file.startswith(os.path.basename(target)[:-4] + '_'):
+					os.remove(os.path.dirname(target) + '/' + file)
+		# print('Timelist vor dem filtern:')
+		# print(pf(timelist))
+		# timelist = self.filter_timelist(timelist, target)
+		# print('Timelist nach dem filtern:')
+		# print(pf(timelist))		
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			futures = []
+			for ftime in timelist:
+				futures.append(executor.submit(self.frame, ftime, size, movie, self.fname2file(ftime, target)))
+			result = []
+			for future in concurrent.futures.as_completed(futures):
+				result.append(future.result())
+		self.last_movie = movie.title
+		return 'ok'
+
 	def frame(self, ftime, scale, movie, target):
 		t0 = time.time()
 		ffstr2 = f"""ffmpeg -ss {ftime} -i "{self._pathname(movie)}" -vframes 1 -q:v 15 \
@@ -141,21 +168,6 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			t1 = time.time()
 			return f"{(t1-t0):5.2f}"
 
-	def timeline(self, movie, target, size, timelist):
-		#print(target)
-		#print(os.path.basename(target), os.path.dirname(target) )
-		if not bool(set(timelist).intersection(self.last_timeline)):
-			for file in os.listdir(os.path.dirname(target)):
-				if file.startswith(os.path.basename(target)[:-4] + '_'):
-					os.remove(os.path.dirname(target) + '/' + file)
-			with concurrent.futures.ThreadPoolExecutor() as executor:
-				futures = []
-				for ftime in timelist:
-					futures.append(executor.submit(self.frame, ftime, size, movie, target[:-4] + '_' + ftime + target[-4:]))
-				result = []
-				for future in concurrent.futures.as_completed(futures):
-					result.append(future.result())
-		return 'ok'
 
 	def oframe(self,movie, ftime, target = None):
 		t0 = time.time()
