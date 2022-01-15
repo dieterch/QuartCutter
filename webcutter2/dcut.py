@@ -138,7 +138,7 @@ class CutterInterface:
 					os.remove(os.path.dirname(target) + '/' + file)
 		# print('Timelist vor dem filtern:')
 		# print(pf(timelist))
-		# timelist = self.filter_timelist(timelist, target)
+		timelist = self.filter_timelist(timelist, target)
 		# print('Timelist nach dem filtern:')
 		# print(pf(timelist))		
 		with concurrent.futures.ThreadPoolExecutor() as executor:
