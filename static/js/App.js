@@ -181,7 +181,7 @@
             },
             pos2fname(pos) {
                 if (pos === -999) {
-                    return '/static/spinning-loading.gif'
+                    return '/static/spinner_160x90.gif'
                 } else if (pos === -998) {
                     return '/static/white.png'
                 } else  {
