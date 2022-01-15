@@ -157,4 +157,10 @@ webcutter2/mnt/*
 !webcutter2/mnt/.keep
 
 static/*.gif
+!static/error.jpg
+!static/spinner_160x90.gif
+!static/spinning-loading.gif
+!static/white.png
+!static/white_frame.png
+!static/yellow_frame.png
 static/*.jpg
