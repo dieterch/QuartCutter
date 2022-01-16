@@ -63,7 +63,8 @@
                     this.lpos = 0
                     this.load_movie_info_promise()
                     .then(response => {
-                        this.lmovie_info = response.data.movie_info                        
+                        this.lmovie_info = response.data.movie_info
+                        this.toggle_timeline = false                        
                     })
                     .catch( error => { 
                         console.log('error: ' + error); 
@@ -188,6 +189,11 @@
                     return  '/static/' + this.ltimeline.basename.slice(0,-4) + '_' + pos2str(pos) + this.ltimeline.basename.slice(-4) + '?' + String(Math.random())
                 }
             },
+            pos_from_end(dsec) {
+                val = Math.trunc(this.lmovie_info.duration_ms / 1000 - dsec) 
+                val = (val < 0) ? 0 : val
+                return val
+            },
             tostart() {
                 this.lpos = 0
                 this.timeline(this.lpos)                
@@ -197,18 +203,21 @@
                 this.timeline(this.lpos)                
             },
             page_minus_timeline() {
-                if (this.lpos > 0) {
+                if (this.lpos + ((this.ltimeline.l - this.ltimeline.r) * this.ltimeline.step)> 0) {
                     this.lpos += (this.ltimeline.l - this.ltimeline.r) * this.ltimeline.step
                     this.lpos = this.posvalid(this.lpos)                
-                    this.timeline(this.lpos)
-                }
+                } else this.lpos = 0
+                this.timeline(this.lpos)
             },
             page_plus_timeline() {
-                if (this.lpos < this.pos_from_end(0)) {
+                //console.log('in ">":',this.lpos, this.pos_from_end(0), this.lpos + (this.ltimeline.r - this.ltimeline.l) * this.ltimeline.step)
+                if (this.lpos + ((this.ltimeline.r - this.ltimeline.l) * this.ltimeline.step ) < this.pos_from_end(0)) {
                     this.lpos += (this.ltimeline.r - this.ltimeline.l) * this.ltimeline.step
+                    //console.log('in ">, if ... nach +=":',this.lpos)
                     this.lpos = this.posvalid(this.lpos)
-                    this.timeline(this.lpos)
-                }
+                    //console.log('in ">, if ... nach this.posvalid":',this.lpos)
+                } else this.lpos = this.pos_from_end(0)
+                this.timeline(this.lpos)
             },
             toggle_and_timeline(mypos) {
                 this.toggle_timeline = !this.toggle_timeline
@@ -265,14 +274,20 @@
                 this.t1 = "01:00:00"
                 this.t1_valid = false                 
             },
+            set_timeline_step(step) {
+                this.ltimeline.step = step
+                this.lpos = Math.trunc(this.lpos / step) * step
+            },
             hpos(b) {
                 // this.toggle_timeline = false 
                 if (b.type == "rel") {
-                    this.lpos += b.val
-                    this.ltimeline.step = Math.abs(b.val)
-                    this.lpos = this.posvalid(this.lpos)
+                    this.set_timeline_step(Math.abs(b.val))
+                    if (!this.toggle_timeline) {
+                        this.lpos += b.val
+                        this.lpos = this.posvalid(this.lpos)
+                        // console.log(this.lpos)
+                    }
                     this.timeline(this.lpos)                
-                    // console.log(this.lpos)
                 } else if (b.type == "abs") {
                     this.lpos = b.val
                     this.timeline(this.lpos)                 
@@ -286,9 +301,6 @@
                     alert("unknown type in hpos")
                 }
 
-            },
-            pos_from_end(dsec) {
-                return Math.trunc(this.lmovie_info.duration_ms / 1000 - 1 - dsec )
             },
             get_frame_promise(pos) {
                 //console.log(`in load frame ... request ${pos}`)
@@ -338,6 +350,15 @@ _cut File ?: ${this.lmovie_cut_info.cutfile}
                             { headers: { 'Content-type': 'application/json',}}
                         ).then((response) => {
                             clearInterval(this.eta_counter_id)
+                            this.toggle_timeline = false
+                            this.load_movie_info_promise()
+                            .then(response => {
+                                this.lmovie_info = response.data.movie_info
+                                this.toggle_timeline = false                        
+                            })
+                            .catch( error => { 
+                                console.log('error: ' + error); 
+                            });
                             this.result = response.data.result
                             this.result_available = true
                         }).catch( error => { 

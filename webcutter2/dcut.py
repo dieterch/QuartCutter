@@ -15,6 +15,7 @@ class CutterInterface:
 		self._reconstruct_apsc_binary = os.path.dirname(__file__) + '/bin/reconstruct_apsc'
 		self._ffmpeg_binary = '/usr/bin/ffmpeg'
 		self.last_movie = ""
+		self.target = ""
 
 	def _path_plit(self, movie):
 		hlp = movie.locations[0].split('/')
@@ -119,44 +120,55 @@ class CutterInterface:
 	def dstr(self, pos, max, ds):
 		val = pos + ds
 		val = val if val >=0 else 0
-		val = val if val < max else max - 1
+		val = val if val < max else max
 		return self.pos2str(val)
 
 	def gen_timeline(self, max, pos, l, r ,step):
 		return [self.dstr(pos,max,delta) for delta in range(l*step,(r+1)*step,step)]
 
-	def fname2file(self, ftime, target):
-		return target[:-4] + '_' + ftime + target[-4:]
+	def fname2file(self, ftime):
+		if self.target != "":
+			return self.target[:-4] + '_' + ftime + self.target[-4:]
+		else:
+			return ""
 
-	def filter_timelist(self, timelist, target):
-		return [ftime for ftime in timelist if not os.path.exists(self.fname2file(ftime, target))]
+	def filter_timelist(self, timelist):
+		if self.target == "":
+			return timelist
+		else: 
+			return [ftime for ftime in timelist if not os.path.exists(self.fname2file(ftime))]
+
+	def delete_target_files(self):
+		if self.target != "":
+			for file in os.listdir(os.path.dirname(self.target)):
+				if file.startswith(os.path.basename(self.target)[:-4] + '_'):
+					os.remove(os.path.dirname(self.target) + '/' + file)	
 		
 	def timeline(self, movie, target, size, timelist):
+		self.target = target
 		if movie.title != self.last_movie: 
-			for file in os.listdir(os.path.dirname(target)):
-				if file.startswith(os.path.basename(target)[:-4] + '_'):
-					os.remove(os.path.dirname(target) + '/' + file)
-		# print('Timelist vor dem filtern:')
-		# print(pf(timelist))
-		timelist = self.filter_timelist(timelist, target)
-		# print('Timelist nach dem filtern:')
-		# print(pf(timelist))		
+			self.delete_target_files()
+		#print('Timelist vor dem filtern:')
+		#print(pf(timelist))
+		timelist = self.filter_timelist(timelist)
+		#print('Timelist nach dem filtern:')
+		#print(pf(timelist))		
 		with concurrent.futures.ThreadPoolExecutor() as executor:
 			futures = []
 			for ftime in timelist:
-				futures.append(executor.submit(self.frame, ftime, size, movie, self.fname2file(ftime, target)))
+				futures.append(executor.submit(self.frame, ftime, size, movie, self.fname2file(ftime)))
 			result = []
 			for future in concurrent.futures.as_completed(futures):
 				result.append(future.result())
 		self.last_movie = movie.title
 		return 'ok'
 
-	def frame(self, ftime, scale, movie, target):
+	def frame(self, ftime, scale, movie, ftarget):
 		t0 = time.time()
 		ffstr2 = f"""ffmpeg -ss {ftime} -i "{self._pathname(movie)}" -vframes 1 -q:v 15 \
 -vf "scale={scale}:-1, drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf: \
 x=(w-text_w)/2: y=(h-text_h)*0.98: fontsize=18: fontcolor=yellow: \
-text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O')}':" '{target}' \
+text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O')}':" '{ftarget}' \
 -hide_banner -loglevel fatal -max_error_rate 1 -y"""
 		exc_lst = shlex.split(ffstr2)
 		try:
@@ -169,15 +181,15 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			return f"{(t1-t0):5.2f}"
 
 
-	def oframe(self,movie, ftime, target = None):
+	def oframe(self,movie, ftime, ftarget = None):
 		t0 = time.time()
 		#frame_name = 'guid' + PlexInterface.movie_rec(movie)['guid'] + '_' + str(ftime).replace(':','-') + '.jpg'
 		frame_name = 'frame.jpg'
-		if target == None:
-			target = os.path.dirname(__file__) + "/data/"
-		target += frame_name
+		if ftarget == None:
+			ftarget = os.path.dirname(__file__) + "/data/"
+		ftarget += frame_name
 		exc_lst = [self._ffmpeg_binary,"-ss", ftime, "-i", f"{self._pathname(movie)}", 
-			"-vframes", "1", "-q:v", "15", "-vf" ,"scale=1024:-1",f"{target}", "-hide_banner", "-loglevel", "fatal", 
+			"-vframes", "1", "-q:v", "15", "-vf" ,"scale=1024:-1",f"{ftarget}", "-hide_banner", "-loglevel", "fatal", 
 			"-max_error_rate","1","-y" ]
 		self.mount(movie)
 		try:
@@ -192,15 +204,15 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			print(f"In frame:{(t1-t0):5.2f} sec.")
 			return frame_name
 
-	async def aframe(self,movie, ftime, target = None):
+	async def aframe(self,movie, ftime, ftarget = None):
 		t0 = time.time()
 		#frame_name = 'guid' + PlexInterface.movie_rec(movie)['guid'] + '_' + str(ftime).replace(':','-') + '.jpg'
 		frame_name = 'frame.jpg'
-		if target == None:
-			target = os.path.dirname(__file__) + "/data/"
-		target += frame_name
+		if ftarget == None:
+			ftarget = os.path.dirname(__file__) + "/data/"
+		ftarget += frame_name
 		exc_lst = [self._ffmpeg_binary,"-ss", ftime, "-i", f"{self._pathname(movie)}", 
-			"-vframes", "1", "-q:v", "15", "-vf" ,"scale=1024:-1",f"{target}", "-hide_banner", "-loglevel", "fatal", 
+			"-vframes", "1", "-q:v", "15", "-vf" ,"scale=1024:-1",f"{ftarget}", "-hide_banner", "-loglevel", "fatal", 
 			"-max_error_rate","1","-y" ]
 		self.mount(movie)
 		try:
@@ -306,6 +318,9 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			restxt += f"Mcut Zeit: {(t2 - t1):7.0f} sec.\n"
 			restxt += f"Ges. Zeit: {(t2 - t0):7.0f} sec.\n\n"
 			print(f"elapsed time: {(t2 - t0):7.0f} sec.")
+			if self.target != "":
+				self.delete_target_files()
+				self.target = ""
 			return restxt
 		except subprocess.CalledProcessError as e:
 			raise e

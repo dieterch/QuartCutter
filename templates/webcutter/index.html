@@ -118,9 +118,9 @@
 
     <!-- cut Movie Timeline START -->
     <div class="row g-2 row-cols-9 p-0 pt-1 pb-1 m-0 mt-1 mb-1 justify-content-lg-left">   
-            <button :class="b.class" v-for="b in bleft"  @click="hpos(b)">[[ b.name ]]</button>
+            <button :class="b.class" v-for="b in bleft" :style="(-b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>
             <input type="text" class="pos form-control-sm mt-0 col-2" placeholder="00:00:00" :value="pos" disabled>
-            <button :class="b.class" v-for="b in bright" @click="hpos(b)">[[ b.name ]]</button>     
+            <button :class="b.class" v-for="b in bright" :style="(b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>     
     </div>
     <!-- cut Movie Timeline ENDE -->
 

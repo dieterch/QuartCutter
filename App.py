@@ -19,7 +19,7 @@ cutter = CutterInterface(fileserver)
 app= Quart(__name__)
 
 initial_section = plex.sections[0]
-initial_movie_key = 5
+initial_movie_key = 0
 initial_movie = initial_section.recentlyAdded()[initial_movie_key]
 
 global selection
@@ -173,7 +173,7 @@ async def get_movie_cut_info():
     apsc = cutter._apsc(m)
     cutfile = cutter._cutfile(m)
     eta_apsc = int((0.5 if not apsc else 0) * dmin)
-    eta_cut =  int(0.7 * dmin)
+    eta_cut =  int(0.9 * dmin)
     eta = eta_apsc + eta_cut
     selection['eta'] = eta
     #print(f"ETA={eta}")
