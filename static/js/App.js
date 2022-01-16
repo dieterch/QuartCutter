@@ -76,7 +76,7 @@
                 }
             },
             cut_ok() {
-                return this.t0_valid & this.t1_valid
+                return this.t0_valid & this.t1_valid & ( this.ltimeline.step == 1 )
             },         
             duration_cut() {
                     //console.log(`t1pos=${str2pos(this.t1)} t0pos=${str2pos(this.t0)}`)
