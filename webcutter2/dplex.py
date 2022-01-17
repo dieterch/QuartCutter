@@ -116,6 +116,14 @@ class MyPlexServer(PlexServer):
         return items
 
 class PlexInterface:
+
+    class MovieData:
+        def __init__(self, movie):
+            self.title = movie.title
+            self.locations = movie.locations 
+            self.duration = movie.duration
+            self.summary = movie.summary
+
     def __init__(self, url, token):
         self._url = url
         self._token = token

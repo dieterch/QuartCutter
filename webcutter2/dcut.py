@@ -1,6 +1,6 @@
 
 import asyncio
-from webcutter2.dplex import PlexInterface
+#from webcutter2.dplex import PlexInterface
 import os
 import time
 import concurrent.futures
@@ -16,6 +16,9 @@ class CutterInterface:
 		self._ffmpeg_binary = '/usr/bin/ffmpeg'
 		self.last_movie = ""
 		self.target = ""
+
+	def _long_runtask(self, delay):
+		time.sleep(delay)
 
 	def _path_plit(self, movie):
 		hlp = movie.locations[0].split('/')
@@ -35,18 +38,17 @@ class CutterInterface:
 		"""
 		the movie filename
 		"""
-		m = PlexInterface.movie_rec(movie)
-		if len(m['locations']) > 1:
+
+		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
-			return m['locations'][0].split('/')[-1]
+			return movie.locations[0].split('/')[-1]
 
 	def _pathname(self,movie):
 		"""
 		path to the mounted movie file
 		"""
-		m = PlexInterface.movie_rec(movie)
-		if len(m['locations']) > 1:
+		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
 			share, path, file = self._path_plit(movie)
@@ -56,26 +58,23 @@ class CutterInterface:
 		"""
 		the movie cut filename
 		"""
-		m = PlexInterface.movie_rec(movie)
-		if len(m['locations']) > 1:
+		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
-			return m['locations'][0].split('/')[-1].split('.')[0] + ' cut.ts'
+			return movie.locations[0].split('/')[-1].split('.')[0] + ' cut.ts'
 
 	def _cutname(self,movie):
 		"""
 		path to the mounted movie cut file (inplace = False)
 		"""
-		m = PlexInterface.movie_rec(movie)
-		if len(m['locations']) > 1:
+		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
 			share, path, file = self._path_plit(movie)
 			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "") + self._cutfilename(movie)	
 
 	def mount(self, movie):
-		m = PlexInterface.movie_rec(movie)
-		if len(m['locations']) > 1:
+		if len(movie.locations) > 1:
 			raise ValueError('cannot cut multiple Files in movie folder')
 		else:
 			share, path, file = self._path_plit(movie)
@@ -279,7 +278,7 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 
 	def cut(self, movie, ss, to, inplace=False):
 		t0 = time.time()
-		t1 = time.time() #initialize t1, in case .ap files exist ...
+		t1 = time.time() #initialize t1, in case .ap files already exist ...
 		restxt = 'cut started ... \n'
 		self.mount(movie)
 		#check ob .ap und .sc Dateien existieren, wenn nicht, erzeugen

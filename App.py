@@ -1,5 +1,7 @@
 import asyncio
 from quart import Quart, request, redirect, url_for, render_template, send_file
+from redis import Redis
+from rq import Connection, Queue
 from webcutter2.dplex import PlexInterface
 from webcutter2.dcut import CutterInterface
 import os
@@ -15,6 +17,9 @@ token = '7YgcyPLqGVM-PVxq2QVo'
 
 plex = PlexInterface(baseurl,token)
 cutter = CutterInterface(fileserver)
+
+redis_connection = Redis(host='localhost',port=6379,password='63nTa6UlGeRipER5HIlInTH5hoS3ckL4', db=0)
+q = Queue('QuartCutter', connection=redis_connection)
 
 app= Quart(__name__)
 
@@ -33,6 +38,12 @@ selection = {
     #'eta' : 0 
     }
 
+@app.route("/delay/<int:secs>")
+async def do_delay(secs):
+    t0 = time.time()
+    job = q.enqueue_call(cutter._long_runtask, args=(secs,))
+    t1 = time.time()
+    return {'result': (t1-t0)}
 
 @app.route("/selection")
 async def get_selection():
@@ -195,12 +206,43 @@ async def do_cut():
         print(res)
         try:
             await asyncio.sleep(1)
-            res = cutter.cut(m,ss,to,inplace)
+            mm = plex.MovieData(m)
+            res = cutter.cut(mm,ss,to,inplace)
             m.analyze()
-            #time.sleep(10)
+            await asyncio.sleep(1)
+            await _update_section(selection['section'].title, force=True)        
             eta_est = selection['eta']
             res += f"ETA Estimation: {eta_est}"
             return { 'result': res }
+        except subprocess.CalledProcessError as e:
+            print(str(e))
+            return { 'result': str(e) }
+
+
+@app.route("/cut2", methods=['POST'])
+async def do_cut2():
+    global selection
+    if request.method == 'POST':
+        req = await request.json
+        section_name = req['section']
+        movie_name = req['movie_name']
+        ss = req['ss']
+        to = req['to']
+        inplace = req['inplace']
+        s = await _update_section(section_name)
+        m = await _update_movie(movie_name)        
+        #res = f"From section '{s}', cut '{m.title}', In {ss}, Out {to}, inplace={inplace}"
+        #print(res)
+        try:
+            mm = plex.MovieData(m)
+            job = q.enqueue_call(cutter.cut, args=(mm,ss,to,inplace,))
+            
+            #res = cutter.cut(m,ss,to,inplace)
+            #m.analyze()
+            #await _update_section(selection['section'].title, force=True)        
+            #eta_est = selection['eta']
+            #res += f"ETA Estimation: {eta_est}"
+            return { 'result': 'cutter started' }
         except subprocess.CalledProcessError as e:
             print(str(e))
             return { 'result': str(e) }

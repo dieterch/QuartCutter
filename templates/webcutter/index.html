@@ -102,8 +102,11 @@
         <div class="col badge bg-primary me-1" v-if="cut_ok"><button class="btn btn-primary btn-sm" @click="toggle_inplace">inplace [[ inplace ? '✓' : '✗' ]]</button></div>
         <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>inplace [[ inplace ? '✓' : '✗' ]]</button></div>
 
-        <div class="col badge bg-danger" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut</button></div>
-        <div class="col badge bg-secondary" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div>
+        <div class="col badge bg-danger me-1" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut</button></div>
+        <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div>
+
+        <div class="col badge bg-danger" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut2">Cut2</button></div>
+        <div class="col badge bg-secondary" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut2</button></div>
 
         <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="tostart()">S</button></div>
         <div class="col badge bg-light col-1 me-1"><button class="btn btn-outline-secondary btn-sm" @click="test" notdisabled>[[ Math.trunc(lpos / 60) ]] min</button></div>
