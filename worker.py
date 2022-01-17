@@ -1,8 +1,10 @@
+import time
+
 from redis import Redis
 from redis.exceptions import ConnectionError
 from rq import Connection, Queue, Worker
+
 from webcutter2.dcut import CutterInterface
-import time
 
 fileserver = '192.168.15.10'
 cutter = CutterInterface(fileserver)

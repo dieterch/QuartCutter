@@ -1,15 +1,17 @@
 import asyncio
-from quart import Quart, request, redirect, url_for, render_template, send_file
+import os
+import subprocess
+import time
+from pprint import pformat as pf
+from pprint import pprint as pp
+from random import randint
+
+from quart import Quart, redirect, render_template, request, send_file, url_for
 from redis import Redis
 from rq import Connection, Queue
+
+from webcutter2.dcut import CutterInterface, report_failure, report_success
 from webcutter2.dplex import PlexInterface
-from webcutter2.dcut import CutterInterface, report_success, report_failure
-import os
-import time
-import subprocess
-from pprint import pprint as pp
-from pprint import pformat as pf
-from random import randint
 
 fileserver = '192.168.15.10'
 baseurl = 'http://192.168.15.10:32400'
@@ -34,8 +36,6 @@ selection = {
     'movies' : initial_section.recentlyAdded(),
     'movie' : initial_movie,
     'pos_time' : '00:00:00'
-    #'frame'  : 'frame.jpg'
-    #'eta' : 0 
     }
 
 @app.route("/delay/<int:secs>")
@@ -88,11 +88,6 @@ async def force_update_section():
     print(f"force_update_section.")
     return 'force update section'
 
-# @app.route("/sections")
-# async def get_sections():
-#     global selection
-#     return { 'sections': [s.title for s in selection['sections']], 'section': selection['section'].title }
-
 # movie related stuff
 async def _update_movie(movie_name):
     global selection
@@ -104,11 +99,6 @@ async def _update_movie(movie_name):
     #print(sel_movie)
     selection['movie'] = sel_movie
     return selection['movie']
-
-# @app.route("/movies")
-# async def get_movies():
-#     global selection
-#     return { 'movies': [m.title for m in selection['movies']], 'movie': selection['movie'].title }
 
 @app.route("/movie_info", methods=['POST'])
 async def set_movie_get_info():
