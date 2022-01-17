@@ -1,12 +1,17 @@
 
 import asyncio
-#from webcutter2.dplex import PlexInterface
 import os
 import time
 import concurrent.futures
 import subprocess
 import shlex
 from pprint import pformat as pf
+
+def report_success(job, connection, result, *args, **kwargs):
+    print(f"\n{job} returned: {result}\n")
+
+def report_failure(job, connection, type, value, traceback):
+    print('got an error', type, value)
 
 class CutterInterface:
 	def __init__(self, server):
@@ -38,7 +43,6 @@ class CutterInterface:
 		"""
 		the movie filename
 		"""
-
 		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
@@ -115,6 +119,9 @@ class CutterInterface:
 
 	def str2pos(self,ps):
 		return int(ps[:2])*3600 + int(ps[3:5])*60 + int(ps[-2:])
+
+	def cutlength(self,ss,to):
+		return (self.str2pos(to) - self.str2pos(ss)) // 60
 
 	def dstr(self, pos, max, ds):
 		val = pos + ds

@@ -3,7 +3,7 @@ from quart import Quart, request, redirect, url_for, render_template, send_file
 from redis import Redis
 from rq import Connection, Queue
 from webcutter2.dplex import PlexInterface
-from webcutter2.dcut import CutterInterface
+from webcutter2.dcut import CutterInterface, report_success, report_failure
 import os
 import time
 import subprocess
@@ -218,7 +218,6 @@ async def do_cut():
             print(str(e))
             return { 'result': str(e) }
 
-
 @app.route("/cut2", methods=['POST'])
 async def do_cut2():
     global selection
@@ -231,22 +230,26 @@ async def do_cut2():
         inplace = req['inplace']
         s = await _update_section(section_name)
         m = await _update_movie(movie_name)        
-        #res = f"From section '{s}', cut '{m.title}', In {ss}, Out {to}, inplace={inplace}"
-        #print(res)
+        res = f"Queue Cut From section '{s}', cut '{m.title}', In {ss}, Out {to}, inplace={inplace}"
+        print(res)
         try:
             mm = plex.MovieData(m)
-            job = q.enqueue_call(cutter.cut, args=(mm,ss,to,inplace,))
-            
-            #res = cutter.cut(m,ss,to,inplace)
-            #m.analyze()
-            #await _update_section(selection['section'].title, force=True)        
-            #eta_est = selection['eta']
-            #res += f"ETA Estimation: {eta_est}"
-            return { 'result': 'cutter started' }
+            job = q.enqueue_call(cutter.cut, args=(mm,ss,to,inplace,), on_success=report_success, on_failure=report_failure)
+            res = f"""
+Section:        {s.title}
+Duration Raw:   {mm.duration // 60000}
+Duration Cut:   {cutter.cutlength(ss,to)}
+In:             {ss}
+Out:            {to}
+.ap .sc Files:  {cutter._apsc(m)}
+cut File:       {cutter._cutfile(m)}
+
+now  queued for cutting.            
+"""
+            return { 'result': res}
         except subprocess.CalledProcessError as e:
             print(str(e))
             return { 'result': str(e) }
-
 
 @app.route("/")
 async def index():
