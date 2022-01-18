@@ -2,15 +2,17 @@ import asyncio
 import os
 import subprocess
 import time
+import json
 from pprint import pformat as pf
 from pprint import pprint as pp
 from random import randint
 
-from quart import Quart, redirect, render_template, request, send_file, url_for
+from quart import Quart, redirect, render_template, request, send_file, url_for, websocket
 from redis import Redis
-from rq import Connection, Queue
+from rq import Connection, Queue, Worker
+from rq.job import Job
 
-from webcutter2.dcut import CutterInterface, report_failure, report_success
+from webcutter2.dcut import CutterInterface #, report_success, report_failure
 from webcutter2.dplex import PlexInterface
 
 fileserver = '192.168.15.10'
@@ -20,8 +22,14 @@ token = '7YgcyPLqGVM-PVxq2QVo'
 plex = PlexInterface(baseurl,token)
 cutter = CutterInterface(fileserver)
 
+def report_success(job, connection, result, *args, **kwargs):
+    print(f"\n{job} returned: {result}\n")
+
+def report_failure(job, connection, type, value, traceback):
+    print('got an error', type, value)
+
 redis_connection = Redis(host='localhost',port=6379,password='63nTa6UlGeRipER5HIlInTH5hoS3ckL4', db=0)
-q = Queue('QuartCutter', connection=redis_connection)
+q = Queue('QuartCutter', connection=redis_connection, default_timeout=600)
 
 app= Quart(__name__)
 
@@ -37,6 +45,12 @@ selection = {
     'movie' : initial_movie,
     'pos_time' : '00:00:00'
     }
+
+@app.websocket('/ws')
+async def ws():
+    while True:
+        data = await websocket.receive()
+        await websocket.send(f"echo {data}")
 
 @app.route("/delay/<int:secs>")
 async def do_delay(secs):
@@ -208,6 +222,79 @@ async def do_cut():
             print(str(e))
             return { 'result': str(e) }
 
+@app.websocket('/wsprogress')
+async def wsprogress():
+    workers = Worker.all(connection=redis_connection)
+    worker = workers[0]
+    while True:
+        data = await websocket.receive()        
+        #await asyncio.sleep(1)
+        erg = cutter.progress()
+        w = {
+            'name': worker.name,
+            'state': worker.state,
+            'success': worker.successful_job_count,
+            'failed': worker.failed_job_count
+        }
+        qd = {
+            'started':q.started_job_registry.count,
+            'finished':q.finished_job_registry.count,
+            'results':[]
+        }
+        if q.finished_job_registry.count > 0:
+            for job_id in q.finished_job_registry.get_job_ids():
+                job = Job.fetch(job_id, connection=redis_connection)
+                qd['results'].append(job.result) 
+
+        if w['state'] == 'idle':
+            cutter.stop_progress()        
+        
+        await websocket.send(json.dumps({
+            'progress':erg,
+            'worker':w,
+            'queue': qd
+            }))
+
+@app.route("/progress")
+async def progress():
+    erg = cutter.progress()
+    workers = Worker.all(connection=redis_connection)
+    worker = workers[0]
+    # job = worker.get_current_job()
+    # j = {
+    #     'status':job.get_status() or None,
+    #     'result':job.result
+    # } if job else {
+    #     'status':'no running job',
+    #     'result':''
+    # }
+    w = {
+        'name': worker.name,
+        'state': worker.state,
+        'success': worker.successful_job_count,
+        'failed': worker.failed_job_count
+    }
+    qd = {
+        'started':q.started_job_registry.count,
+        'finished':q.finished_job_registry.count,
+        'results':[]
+    }
+    if q.finished_job_registry.count > 0:
+        for job_id in q.finished_job_registry.get_job_ids():
+            job = Job.fetch(job_id, connection=redis_connection)
+            qd['results'].append(job.result) 
+    if w['state'] == 'idle':
+        cutter.stop_progress()
+    return {'progress':erg,
+            'worker':w,
+            #'job': j,
+            'queue': qd}
+
+@app.route("/stop_progress")
+async def stop_progress():
+    erg = cutter.stop_progress()
+    return 'ok'
+
 @app.route("/cut2", methods=['POST'])
 async def do_cut2():
     global selection
@@ -224,13 +311,16 @@ async def do_cut2():
         print(res)
         try:
             mm = plex.MovieData(m)
-            job = q.enqueue_call(cutter.cut, args=(mm,ss,to,inplace,), on_success=report_success, on_failure=report_failure)
+            cutter.prepare_progress(mm, inplace)
+            job = q.enqueue_call(cutter.cut, args=(mm,ss,to,inplace,))
+            #, on_success=report_success, on_failure=report_failure)
             res = f"""
 Section:        {s.title}
 Duration Raw:   {mm.duration // 60000}
 Duration Cut:   {cutter.cutlength(ss,to)}
 In:             {ss}
 Out:            {to}
+Inplace:        {inplace}
 .ap .sc Files:  {cutter._apsc(m)}
 cut File:       {cutter._cutfile(m)}
 

@@ -7,12 +7,6 @@ import subprocess
 import shlex
 from pprint import pformat as pf
 
-def report_success(job, connection, result, *args, **kwargs):
-    print(f"\n{job} returned: {result}\n")
-
-def report_failure(job, connection, type, value, traceback):
-    print('got an error', type, value)
-
 class CutterInterface:
 	def __init__(self, server):
 		self._server = server
@@ -21,6 +15,9 @@ class CutterInterface:
 		self._ffmpeg_binary = '/usr/bin/ffmpeg'
 		self.last_movie = ""
 		self.target = ""
+		self._cuttedmovie = None
+		self._inplace = False
+		self._cutstart = 0
 
 	def _long_runtask(self, delay):
 		time.sleep(delay)
@@ -283,6 +280,28 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 		except subprocess.CalledProcessError as e:
 			raise e
 
+	def prepare_progress(self, movie, inplace):
+		self._cutstart = time.time()
+		self._inplace = inplace
+		self._cuttedmovie = movie
+
+	def stop_progress(self):
+		self._cutstart = 0
+		self._inplace = False
+		self._cuttedmovie = None
+
+	def progress(self):
+		if self._cuttedmovie != None:
+			t_act = time.time()
+			erg = {
+					'Inplace': self._inplace,
+					'CuttedMovie':	self._cuttedmovie.title,
+					'ElapsedTime':	(t_act - self._cutstart)
+			}
+			return erg
+		else:
+			return {}
+
 	def cut(self, movie, ss, to, inplace=False):
 		t0 = time.time()
 		t1 = time.time() #initialize t1, in case .ap files already exist ...
@@ -296,6 +315,12 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 		if ((inplace == False) and (os.path.exists(self._cutname(movie)))):
 			try:
 				os.remove(self._cutname(movie))
+				if os.path.exists(self._cutname(movie)+'.ap'):
+					os.remove(self._cutname(movie)+'.ap')
+				if os.path.exists(self._cutname(movie)+'.cuts'):
+					os.remove(self._cutname(movie)+'.cuts')
+				if os.path.exists(self._cutname(movie)+'.sc'):
+					os.remove(self._cutname(movie)+'.sc')
 				restxt += f"*_cut.ts file existed, deleted ... \n\n"
 			except FileNotFoundError as e:
 				print(str(e))
@@ -316,6 +341,12 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			if ((inplace == True) and (os.path.exists(self._cutname(movie)))):
 				try:
 					os.remove(self._cutname(movie))
+					if os.path.exists(self._cutname(movie)+'.ap'):
+						os.remove(self._cutname(movie)+'.ap')
+					if os.path.exists(self._cutname(movie)+'.cuts'):
+						os.remove(self._cutname(movie)+'.cuts')
+					if os.path.exists(self._cutname(movie)+'.sc'):
+						os.remove(self._cutname(movie)+'.sc')
 					restxt += f"cut successful, *_cut.ts file deleted.\n"
 				except FileNotFoundError as e:
 					print(str(e))

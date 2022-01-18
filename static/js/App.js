@@ -9,9 +9,15 @@
         erg = parseInt(String(st).slice(0,2))*3600 + parseInt(String(st).slice(3,5))*60 + parseInt(String(st).slice(-2))
         return erg
     }
-
     let myModalSlot = new VueModalSlot()
-
+    let ws = new WebSocket(`${Vue.prototype.$ws}/ws`)
+    ws.onmessage = function (event) {
+        console.log(event.data)
+    }
+    let wsp = new WebSocket(`${Vue.prototype.$ws}/wsprogress`)
+    wsp.onmessage = function (event) {
+        console.log(event.data)
+    }
     // Vue App
     const vueApp = new Vue({
         el: '#vueApp',
@@ -20,6 +26,7 @@
             section: '',
             movies: [],
             lmovie: '',
+            lmovie_dummy:0,
             lmovie_info: Object(),
             lmovie_cut_info: { 
                     apsc: false,
@@ -61,6 +68,7 @@
                 get() {
                     this.reset_t0_t1()
                     this.lpos = 0
+                    this.lmovie_dummy = this.lmovie_dummy
                     this.load_movie_info_promise()
                     .then(response => {
                         this.lmovie_info = response.data.movie_info
@@ -125,6 +133,11 @@
             }
         },
         methods: {
+            lmd() {
+                this.lmovie_dummy += 1
+                ws.send('bob ' + String(this.lmovie_dummy))
+                wsp.send('go')
+            },
             test() {
                 this.show_close_button = true
                 this.result_available = false
