@@ -6,6 +6,8 @@ import json
 from pprint import pformat as pf
 from pprint import pprint as pp
 from random import randint
+import datetime
+import pytz
 
 from quart import Quart, redirect, render_template, request, send_file, url_for, websocket
 from redis import Redis
@@ -222,78 +224,86 @@ async def do_cut():
             print(str(e))
             return { 'result': str(e) }
 
+
+async def doProgress():
+    mstatus = {
+        'title': '-',
+        'progress': 0,
+        'started': 0
+    } 
+    workers = Worker.all(connection=redis_connection)
+    worker = workers[0] if len(workers) > 0 else None
+    if worker:
+        lhb = pytz.utc.localize(worker.last_heartbeat)
+        lhbtz = lhb.astimezone(pytz.timezone("Europe/Vienna"))
+        w = {
+            #'name': worker.name,
+            'state': worker.state,
+            'last_heartbeat': lhbtz.strftime("%H:%M:%S"),
+            #'current_job_id': worker.get_current_job_id(),
+            #'failed': worker.failed_job_count
+        } 
+    else:
+        w = {
+            'status':'no worker detected'
+        }
+    qd = {
+        'started':q.started_job_registry.count,
+        #'deferred':q.deferred_job_registry.count,
+        'finished':q.finished_job_registry.count,
+        #'scheduled':q.scheduled_job_registry.count,
+        'failed':q.failed_job_registry.count,
+    }
+    if q.started_job_registry.count > 0:
+        qd['started_jobs'] = []
+        #qd['started_jobs'] = q.started_job_registry.get_job_ids()
+        for job_id in q.started_job_registry.get_job_ids():
+            job = Job.fetch(job_id, connection=redis_connection)
+            m = plex.MovieData(job.args[0])
+            prog = cutter._movie_stats(*job.args)
+            #print(cutter._movie_stats(*job.args))
+            d = {
+                'title': m.title,
+                'ss':job.args[1],
+                'to':job.args[2],
+                'name': job_id,
+                'status':job.get_status(refresh=True),
+                'progress':prog
+            }
+            qd['started_jobs'].append(d)
+            mstatus.update({
+                'title': m.title,
+                'progress': prog,
+                'started': q.started_job_registry.count               
+            })
+
+    if q.finished_job_registry.count > 0:
+        qd['finished_jobs'] = []
+        for job_id in q.finished_job_registry.get_job_ids():
+            job = Job.fetch(job_id, connection=redis_connection)
+            d = {
+                'name': job_id,
+                'result': job.result
+            }
+            qd['finished_jobs'].append(d) 
+
+    return mstatus
+    # return {
+    #     'worker':w,
+    #     'queue': qd
+    #     }
+
 @app.websocket('/wsprogress')
 async def wsprogress():
-    workers = Worker.all(connection=redis_connection)
-    worker = workers[0]
     while True:
-        data = await websocket.receive()        
-        #await asyncio.sleep(1)
-        erg = cutter.progress()
-        w = {
-            'name': worker.name,
-            'state': worker.state,
-            'success': worker.successful_job_count,
-            'failed': worker.failed_job_count
-        }
-        qd = {
-            'started':q.started_job_registry.count,
-            'finished':q.finished_job_registry.count,
-            'results':[]
-        }
-        if q.finished_job_registry.count > 0:
-            for job_id in q.finished_job_registry.get_job_ids():
-                job = Job.fetch(job_id, connection=redis_connection)
-                qd['results'].append(job.result) 
-
-        if w['state'] == 'idle':
-            cutter.stop_progress()        
-        
-        await websocket.send(json.dumps({
-            'progress':erg,
-            'worker':w,
-            'queue': qd
-            }))
+        data = await websocket.receive()
+        status = {'status':'no data'}
+        status = await doProgress()        
+        await websocket.send(json.dumps(status))
 
 @app.route("/progress")
 async def progress():
-    erg = cutter.progress()
-    workers = Worker.all(connection=redis_connection)
-    worker = workers[0]
-    # job = worker.get_current_job()
-    # j = {
-    #     'status':job.get_status() or None,
-    #     'result':job.result
-    # } if job else {
-    #     'status':'no running job',
-    #     'result':''
-    # }
-    w = {
-        'name': worker.name,
-        'state': worker.state,
-        'success': worker.successful_job_count,
-        'failed': worker.failed_job_count
-    }
-    qd = {
-        'started':q.started_job_registry.count,
-        'finished':q.finished_job_registry.count,
-        'results':[]
-    }
-    if q.finished_job_registry.count > 0:
-        for job_id in q.finished_job_registry.get_job_ids():
-            job = Job.fetch(job_id, connection=redis_connection)
-            qd['results'].append(job.result) 
-    if w['state'] == 'idle':
-        cutter.stop_progress()
-    return {'progress':erg,
-            'worker':w,
-            #'job': j,
-            'queue': qd}
-
-@app.route("/stop_progress")
-async def stop_progress():
-    erg = cutter.stop_progress()
-    return 'ok'
+    return await doProgress()
 
 @app.route("/cut2", methods=['POST'])
 async def do_cut2():
@@ -311,7 +321,7 @@ async def do_cut2():
         print(res)
         try:
             mm = plex.MovieData(m)
-            cutter.prepare_progress(mm, inplace)
+            #cutter.prepare_progress(mm, inplace)
             job = q.enqueue_call(cutter.cut, args=(mm,ss,to,inplace,))
             #, on_success=report_success, on_failure=report_failure)
             res = f"""

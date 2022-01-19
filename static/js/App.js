@@ -10,14 +10,16 @@
         return erg
     }
     let myModalSlot = new VueModalSlot()
+    let myRQStatus = new VueRQStatus()
+
     let ws = new WebSocket(`${Vue.prototype.$ws}/ws`)
     ws.onmessage = function (event) {
         console.log(event.data)
     }
-    let wsp = new WebSocket(`${Vue.prototype.$ws}/wsprogress`)
-    wsp.onmessage = function (event) {
-        console.log(event.data)
-    }
+    // let wsp = new WebSocket(`${Vue.prototype.$ws}/wsprogress`)
+    // wsp.onmessage = function (event) {
+    //     console.log(JSON.parse(event.data))
+    // }
     // Vue App
     const vueApp = new Vue({
         el: '#vueApp',
@@ -136,7 +138,15 @@
             lmd() {
                 this.lmovie_dummy += 1
                 ws.send('bob ' + String(this.lmovie_dummy))
-                wsp.send('go')
+                //myRQStatus.sendMessage('bob')
+                // wsp.send({foo: 'bar'})
+                // Request({foo: 'bar'})
+                //     .then(response => {
+                //         console.log('reponse: ' +  response.data)
+                //     })
+                //     .catch(error => {
+                //         console.log('error: ' + error)
+                //     })
             },
             test() {
                 this.show_close_button = true

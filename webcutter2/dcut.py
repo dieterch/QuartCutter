@@ -15,9 +15,6 @@ class CutterInterface:
 		self._ffmpeg_binary = '/usr/bin/ffmpeg'
 		self.last_movie = ""
 		self.target = ""
-		self._cuttedmovie = None
-		self._inplace = False
-		self._cutstart = 0
 
 	def _long_runtask(self, delay):
 		time.sleep(delay)
@@ -43,17 +40,24 @@ class CutterInterface:
 		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
-			return movie.locations[0].split('/')[-1]
+			_,_,file = self._path_plit(movie)
+			return file
+
+	def _foldername(self,movie):
+		"""
+		path to the mounted movie folder
+		"""
+		if len(movie.locations) > 1:
+			raise ValueError('cannot handle multiple Files in movie folder')
+		else:
+			_,path,_ = self._path_plit(movie)
+			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "")	
 
 	def _pathname(self,movie):
 		"""
 		path to the mounted movie file
 		"""
-		if len(movie.locations) > 1:
-			raise ValueError('cannot handle multiple Files in movie folder')
-		else:
-			share, path, file = self._path_plit(movie)
-			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "") + self._filename(movie)		
+		return self._foldername(movie) + self._filename(movie)		
 
 	def _cutfilename(self,movie):
 		"""
@@ -62,17 +66,48 @@ class CutterInterface:
 		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
-			return movie.locations[0].split('/')[-1].split('.')[0] + ' cut.ts'
+			return os.path.splitext(self._filename(movie))[0] + ' cut.ts'
 
 	def _cutname(self,movie):
 		"""
 		path to the mounted movie cut file (inplace = False)
 		"""
+		return self._foldername(movie) + self._cutfilename(movie)	
+
+	def _tempfilename(self,movie):
+		"""
+		the movie temp filename @ inplace cutting
+		"""
 		if len(movie.locations) > 1:
 			raise ValueError('cannot handle multiple Files in movie folder')
 		else:
-			share, path, file = self._path_plit(movie)
-			return os.path.dirname(__file__) + "/mnt/" + path + ("/" if path else "") + self._cutfilename(movie)	
+			return os.path.splitext(self._filename(movie))[0] + '_.ts'
+
+	def _tempname(self,movie):
+		"""
+		path to the temporary movie cut file (inplace = true)
+		"""
+		return self._foldername(movie) + self._tempfilename(movie)
+
+	def _movie_stats(self, movie, ss, to, inplace=False):
+		"""
+		return filenames and length for every file in the moviefolder
+		"""
+		self.mount(movie)
+		cl = self.cutlength(ss,to)
+		ml = (movie.duration / 60000)
+		faktor = cl/ml
+		moviesize = os.path.getsize(self._pathname(movie))
+		targetsize = faktor * moviesize
+		if inplace:
+			progress = os.path.getsize(self._tempname(movie))/targetsize
+		else:
+			if os.path.exists(self._cutname(movie)):
+				progress = os.path.getsize(self._cutname(movie))/targetsize
+			else:
+				progress = 0
+		progress = int(progress * 100) if progress < 1.0 else 100
+		return progress
 
 	def mount(self, movie):
 		if len(movie.locations) > 1:
@@ -95,7 +130,8 @@ class CutterInterface:
 				print(f"{source} mounted.")
 				return res
 			else:
-				print('******no mounting needed')
+				pass
+				#print('******no mounting needed')
 		except subprocess.CalledProcessError as e:
 			print(str(e))
 			raise e
@@ -280,32 +316,14 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 		except subprocess.CalledProcessError as e:
 			raise e
 
-	def prepare_progress(self, movie, inplace):
-		self._cutstart = time.time()
-		self._inplace = inplace
-		self._cuttedmovie = movie
-
-	def stop_progress(self):
-		self._cutstart = 0
-		self._inplace = False
-		self._cuttedmovie = None
-
-	def progress(self):
-		if self._cuttedmovie != None:
-			t_act = time.time()
-			erg = {
-					'Inplace': self._inplace,
-					'CuttedMovie':	self._cuttedmovie.title,
-					'ElapsedTime':	(t_act - self._cutstart)
-			}
-			return erg
-		else:
-			return {}
-
 	def cut(self, movie, ss, to, inplace=False):
 		t0 = time.time()
 		t1 = time.time() #initialize t1, in case .ap files already exist ...
 		restxt = 'cut started ... \n'
+		resdict = {
+			'name': movie.title,
+			'inplace': inplace
+		}
 		self.mount(movie)
 		#check ob .ap und .sc Dateien existieren, wenn nicht, erzeugen
 		restxt += f"{self._filename(movie)} exists ? {os.path.exists(self._pathname(movie))}\n"
@@ -331,6 +349,9 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 				t1 = time.time()
 				restxt += f"Ergebnis Reconstruct: {res}\n"
 				restxt += f"ReSt Zeit: {(t1 - t0):7.0f} sec.\n\n"
+				resdict.update({
+					'RestApTime': (t1-t0)
+				})
 			except subprocess.CalledProcessError as e:
 				raise e
 		
@@ -354,11 +375,16 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			restxt += f"Ergebnis Mcut: {res}\n"
 			restxt += f"Mcut Zeit: {(t2 - t1):7.0f} sec.\n"
 			restxt += f"Ges. Zeit: {(t2 - t0):7.0f} sec.\n\n"
+			resdict.update({
+				'McutTime': (t2 - t1),
+				'TotalTime': (t2 - t0)
+			})
 			print(f"elapsed time: {(t2 - t0):7.0f} sec.")
 			if self.target != "":
 				self.delete_target_files()
 				self.target = ""
-			return restxt
+			#return restxt
+			return resdict
 		except subprocess.CalledProcessError as e:
 			raise e
 		finally:

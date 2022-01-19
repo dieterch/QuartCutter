@@ -13,6 +13,7 @@ from requests.status_codes import _codes as codes
 from plexapi.exceptions import BadRequest, NotFound, Unauthorized, Unsupported
 from xml.etree import ElementTree
 
+
 class MyPlexClient(PlexClient):
 
     def query(self, path, method=None, headers=None, timeout=None, **kwargs):
@@ -117,12 +118,29 @@ class MyPlexServer(PlexServer):
 
 class PlexInterface:
 
-    class MovieData:
+    class MovieData():
         def __init__(self, movie):
             self.title = movie.title
             self.locations = movie.locations 
             self.duration = movie.duration
             self.summary = movie.summary
+
+        def __iter__(self):
+            yield from {
+                "title": self.title,
+                "locations": self.locations,
+                "duration": self.duration,
+                "summary": self.summary
+            }.items()
+
+        def __str__(self):
+            return json.dumps(dict(self), ensure_ascii=False)
+
+        def __repr__(self):
+            return self.__str__()
+            
+        def to_json(self):
+            return json.dumps(self.__dict__)
 
     def __init__(self, url, token):
         self._url = url

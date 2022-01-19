@@ -63,6 +63,8 @@
     </ModalSlot>
     <!--- ENDE -->
 
+    <RQStatus text="RQStatus:"></RQStatus>
+
     <!-- section und movie selection START -->
     <div class="row g-2 mt-1 justify-content-lg-center">
         <div class="col form-floating col-5">
@@ -146,5 +148,6 @@
     Vue.prototype.$ws = "ws://{{ host }}"
 </script>
 <script src="{{ url_for('static', filename='js/components/Modal.js') }}"></script>
+<script src="{{ url_for('static', filename='js/components/RQStatus.js') }}"></script>
 <script src="{{ url_for('static', filename='js/App.js') }}"></script>
 {% endblock %}
