@@ -63,7 +63,11 @@
     </ModalSlot>
     <!--- ENDE -->
 
-    <RQStatus text="RQStatus:"></RQStatus>
+    <!--RQStatus text="RQStatus:"></RQStatus-->
+    <div id="rqstatus">
+        <span v-if="rqstatus_visible()">cutting: [[ mydata.title ]] [[ mydata.progress ]]%</span>
+        <span v-else>cutting: -</span>
+    </div>
 
     <!-- section und movie selection START -->
     <div class="row g-2 mt-1 justify-content-lg-center">
@@ -148,6 +152,6 @@
     Vue.prototype.$ws = "ws://{{ host }}"
 </script>
 <script src="{{ url_for('static', filename='js/components/Modal.js') }}"></script>
-<script src="{{ url_for('static', filename='js/components/RQStatus.js') }}"></script>
+<!--script src="{{ url_for('static', filename='js/components/RQStatus.js') }}"></script-->
 <script src="{{ url_for('static', filename='js/App.js') }}"></script>
 {% endblock %}

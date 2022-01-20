@@ -100,7 +100,10 @@ class CutterInterface:
 		moviesize = os.path.getsize(self._pathname(movie))
 		targetsize = faktor * moviesize
 		if inplace:
-			progress = os.path.getsize(self._tempname(movie))/targetsize
+			if os.path.exists(self._tempname(movie)):
+				progress = os.path.getsize(self._tempname(movie))/targetsize
+			else:
+				progress = 0
 		else:
 			if os.path.exists(self._cutname(movie)):
 				progress = os.path.getsize(self._cutname(movie))/targetsize

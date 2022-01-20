@@ -10,7 +10,7 @@
         return erg
     }
     let myModalSlot = new VueModalSlot()
-    let myRQStatus = new VueRQStatus()
+    //let myRQStatus = new VueRQStatus()
 
     let ws = new WebSocket(`${Vue.prototype.$ws}/ws`)
     ws.onmessage = function (event) {
@@ -57,7 +57,13 @@
                 r: 4,
                 step: 1,
                 size: '160'
-            }
+            },
+            mydata: {
+                title: '-',
+                started: 0,
+                progress: 0
+            },
+            mydata_timer_id: 0
         },
         computed: {
             totalsections() {
@@ -147,6 +153,9 @@
                 //     .catch(error => {
                 //         console.log('error: ' + error)
                 //     })
+            },
+            rqstatus_visible() {
+                return this.mydata.started > 0
             },
             test() {
                 this.show_close_button = true
@@ -427,6 +436,25 @@ _cut File ?: ${this.lmovie_cut_info.cutfile}
                             { headers: { 'Content-type': 'application/json',}}
                         ).then((response) => {
                             clearInterval(this.eta_counter_id)
+                            this.mydata.title = 'starting ...'
+                            this.mydata.progress = 0
+                            this.mydata.started = 1
+                            this.mydata_timer_id = setInterval(function mdTimer() {
+                                axios.get(`${Vue.prototype.$host}/progress`)
+                                .then(response => {
+                                    this.mydata = response.data
+                                    console.log(this.mydata)
+                                    if (this.mydata.started == 0) {
+                                        clearInterval(this.mydata_timer_id)
+                                        this.mydata.started = 0 
+                                    }
+                                })
+                                .catch(error => { 
+                                    console.log('error: ' + error);
+                                    clearInterval(this.mydata_timer_id) 
+                                })
+                            }.bind(this), 10000);
+
                             this.toggle_timeline = false
                             this.load_movie_info_promise()
                             .then(response => {
