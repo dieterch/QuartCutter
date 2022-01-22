@@ -1,0 +1,187 @@
+body {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+}
+
+.btn:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+.dcontainer {
+    height: 100vh;
+    display: grid;
+    box-sizing: border-box;
+    grid-template: 2rem 4.2rem 3rem auto 2rem / 90fr auto;
+    grid-template-areas: 
+    "header header"
+    "dropbar dropbar"
+    "cutbar1 cutbar2"
+    "main sidebar"
+    "footer footer";
+    background: rgb(36, 36, 36);
+    border: 3px solid white;
+    gap: 0px;
+}
+
+.dbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dbox-content {
+    margin: 0px 5px 0px 5px;
+}
+
+.dropbox {
+    width: 50%;
+    height: 100%;
+}
+
+.drop-label {
+    color: white;
+    font-size: 0.6rem;
+}
+
+.dbox-header {
+    background: rgb(63, 62, 62);
+    color: white;
+    justify-content: left;
+    grid-area: header;
+}
+
+.dbox-dropbar {
+    color: black;
+    grid-area: dropbar;
+}
+
+.dbox-cutbar1 {
+    margin: 0px;
+    grid-area: cutbar1;
+}
+
+.dbox-cutbar2 {
+    justify-content: space-between;
+    margin: 0px 5px;
+    grid-area: cutbar2;
+}
+
+.dbox-cutbar2-btn {
+    width: 34px;
+    padding: 8px 2px;
+    margin: 0px 0px;
+}
+
+/* main grid */
+.main_container {
+    display: grid;
+    grid-template-rows: auto 100fr;
+    grid-template-columns: 1;   
+    grid-area: main;
+}
+
+.dbox-main-detail {
+    flex-direction: row;
+    justify-content: stretch;
+    background: black;
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.dbox-main {
+    background: black;
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.frame {
+    min-width: 50%;
+    max-width: 100%;
+    height: auto;
+}
+
+.img-main {
+    width:100%
+}
+/* main grid */
+
+.dbox-sidebar {
+    justify-content: center;
+    align-items:flex-start;
+    grid-area: sidebar;
+}
+
+.dbox-footer {
+    background: rgb(63, 62, 62);
+    color: white;
+    grid-area: footer;
+    justify-content: left;
+}
+
+.dbox-footer-content {
+    margin: 0px 5px;
+}
+
+/* sidebar grid */
+.sb_container {
+    display: grid;
+    grid-template-rows: auto auto auto 100fr;
+    grid-template-columns: 50fr 50fr;   
+}
+
+.sb_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sb_box-pos {
+    font-size: 1.5em;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    background: white;
+    margin: 0px 5px 1px 5px;
+    border: 1px solid black;
+    border-radius: 3px;    
+}
+
+.sb_box-pos2 {
+    font-size: 1em;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    background: white;
+    margin: 1px 5px 1px 5px;
+    border: 1px solid black;
+    border-radius: 3px;    
+}
+
+.sb_box-len {
+    font-size: 1em;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 1px 5px 5px 5px;
+    background: white;
+    border: 1px solid black;
+    border-radius: 3px;    
+}
+
+.sb_btn {
+    width: 50px;
+    padding: 2px 3px;
+    margin: 2px 5px;
+}
+
+.sb_box-buttons1 {
+    flex-direction: column;
+    grid-column: 1;
+    grid-row: 4;
+}
+
+.sb_box-buttons2 {
+    flex-direction:column-reverse;
+    grid-column: 2;
+    grid-row: 4;
+}
+/* sidebar grid */

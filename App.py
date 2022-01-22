@@ -345,7 +345,7 @@ now  queued for cutting.
 async def index():
     global selection
     host = request.headers.get('Host')
-    return await render_template('webcutter/index.html', host=host)
+    return await render_template('webcutter/index2.html', host=host)
 
 @app.route("/apple-touch-icon.png")
 async def get_icon():

@@ -1,0 +1,233 @@
+{% extends 'base2.html' %} 
+{% block title %}Quart Web Cutter{% endblock %}
+
+
+{% block modal %}
+    <!-- ANFANG -- Modal -->
+    <ModalSlot :showclosebutton="show_close_button">
+        <template v-slot:header>
+        <h4 class="modal-title" id="staticBackdropLabelSlot">[[ movie ]]</h4>
+        <!--button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" v-if="show_close_button"></button-->
+        </template>
+    
+        <template v-slot:body>
+        <div class="container-fluid" v-if="!result_available">
+        <div class="row">
+            <div class="col-md-4">Section:</div>
+            <div class="col-md-4">[[ section ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">Duration Raw:</div>
+            <div class="col-md-4">[[ lmovie_info.duration ]] min</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">Duration Cut:</div>
+            <div class="col-md-4">[[ duration_cut ]] min</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">In:</div>
+            <div class="col-md-4">[[ t0 ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">Out:</div>
+            <div class="col-md-4">[[ t1 ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">.ap. sc Files:</div>
+            <div class="col-md-4">[[ lmovie_cut_info.apsc ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4"> cut File:</div>
+            <div class="col-md-4">[[ lmovie_cut_info.cutfile ]]</div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-4">ETA:</div>
+            <div class="col-md-4">[[ lmovie_cut_info.eta ]] sec, [[ eta_counter ]] sec</div>
+        </div>
+        </div>
+        <div class="container-fluid" v-else>
+        <div class="row">
+            <pre class="col-md-12">[[ result ]]</pre>
+        </div>                                        
+        </div>                            
+        </template>
+
+        <template v-slot:footer>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" v-if="result_available">Close</button>
+            <br v-else>
+        </template>
+    </ModalSlot>
+    <!--- ENDE -->
+{% endblock %}
+
+{% block content %} 
+    <div class="dcontainer">
+
+        <!-- Header -->
+        <div class="dbox dbox-header">
+            <div class="dbox-content">Quart Web Cutter</div>
+        </div>
+
+        <!-- Dropbars -->
+        <div class="dbox dbox-dropbar">
+            <div class="dropbox dbox-content">
+                <label class="drop-label" for="vueSectionID" >[[ totalsections ]] Sections</label>
+                <select id="vueSectionID" v-model='section' class="form-select" @change="update_section">
+                        <option v-for="sec in sections" v-bind:value="sec">
+                            [[ sec ]]
+                        </option>            
+                </select>
+            </div>
+            <div class="dropbox dbox-content">
+                <label class="drop-label" for="vueMovieID" >[[ totalmovies ]] recently added Movies</label>
+                <select id="vueMovieID" v-model='movie' class="form-select" >
+                    <option v-for="movie in movies" v-bind:value="movie">
+                        [[ movie ]]
+                    </option>                               
+                </select>
+            </div>
+            <!--div class="col badge bg-light col-auto me-1 my-auto"><button class="btn btn-outline-primary" @click="lmd()">↺ [[ lmovie_dummy ]]</button></div-->
+        </div>
+
+        <!-- CutBar -->
+        <!-- cut Movie Action Bar START -->
+        <div class="dbox dbox-cutbar1">
+
+                <div class="col badge bg-primary me-1" v-if="t0_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">[[ t0 ]] In </button></div>
+                <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">--:--:-- In </button></div>
+
+                <div class="col badge bg-primary me-1" v-if="t1_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">[[ t1 ]] Out</button></div>
+                <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">--:--:-- Out</button></div>
+
+                <div class="col badge bg-primary me-1" v-if="cut_ok"><button class="btn btn-primary btn-sm" @click="toggle_inplace">inplace [[ inplace ? '✓' : '✗' ]]</button></div>
+                <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>inplace [[ inplace ? '✓' : '✗' ]]</button></div>
+
+                <div class="col badge bg-danger me-1" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut</button></div>
+                <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div>
+
+                <div class="col badge bg-danger" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut2">Cut2</button></div>
+                <div class="col badge bg-secondary" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut2</button></div>
+        </div>  
+
+        <div class="dbox dbox-cutbar2">
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_minus_timeline(lpos)"><</button>       
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="toggle_and_timeline(lpos)">@</button>
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_plus_timeline(lpos)">></button>        
+        </div>
+        <!-- cut Movie Action Bar ENDE -->
+
+        <!-- Main -->
+        <div class="main_container">
+
+            <div class="dbox dbox-main-detail" v-if="toggle_timeline">
+                <a v-for="ival in ltimeline.larray" @click="hpos({val: ival, type:'abs'})"><img  :src="pos2fname(ival)" class="mx-auto" width="100%"></a> 
+            </div>
+            
+            <div class="dbox dbox-main">
+                <div>
+                    <!-- Frame START -->    
+                    <img :src="frame_name" class="frame" alt="... loading ...">
+                    <!-- Frame ENDE --> 
+                </div>  
+            </div>
+
+        </div>
+
+        <!-- SideBar -->
+        <div class="dbox dbox-sidebar">
+            <div class="sb_container">
+                <div class="sb_box sb_box-pos">
+                    <div class="sb_box-content">
+                        [[ pos ]]
+                    </div>
+                </div>
+
+                <div class="sb_box sb_box-pos2">
+                    <div class="sb_box-content">
+                        [[ Math.trunc(lpos / 60) ]] min
+                    </div>
+                </div>
+                
+                <div class="sb_box sb_box-len">
+                    <div class="sb_box-content">
+                        [[ lmovie_info.duration ]] min
+                    </div>
+                </div>
+
+                <div class="sb_box sb_box-buttons1">
+                    <button :class="b.class" v-for="b in bleft" :style="(-b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>
+                </div>
+
+                <div class="sb_box sb_box-buttons2">
+                    <button :class="b.class" v-for="b in bright" :style="(b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dbox dbox-footer">
+            <div id="rqstatus" class="dbox-footer-content">
+                <span v-if="rqstatus_visible()">cutting: [[ mydata.title ]] [[ mydata.progress ]]%</span>
+                <span v-else>cutting: -</span>
+            </div>
+        </div>    
+    </div>
+{% endblock %} 
+
+{% block content2 %}
+    <!-- cut Movie Action Bar START
+    <div class="row g-2 row-cols-7 justify-content-lg-center mt-1">
+
+        <div class="col badge bg-dark me-1"><button class="btn btn-dark btn-sm">[[ lmovie_info.duration ]] min</button></div>
+
+        <div class="col badge bg-primary me-1" v-if="t0_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">[[ t0 ]] In </button></div>
+        <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">--:--:-- In </button></div>
+
+        <div class="col badge bg-primary me-1" v-if="t1_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">[[ t1 ]] Out</button></div>
+        <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">--:--:-- Out</button></div>
+
+        <div class="col badge bg-primary me-1" v-if="cut_ok"><button class="btn btn-primary btn-sm" @click="toggle_inplace">inplace [[ inplace ? '✓' : '✗' ]]</button></div>
+        <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>inplace [[ inplace ? '✓' : '✗' ]]</button></div>
+
+        <div class="col badge bg-danger me-1" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut</button></div>
+        <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div>
+
+        <div class="col badge bg-danger" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut2">Cut2</button></div>
+        <div class="col badge bg-secondary" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut2</button></div>
+
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="tostart()">S</button></div>
+        <div class="col badge bg-light col-1 me-1"><button class="btn btn-outline-secondary btn-sm" @click="test" notdisabled>[[ Math.trunc(lpos / 60) ]] min</button></div>
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="toend()">E</button></div>
+
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="page_minus_timeline(lpos)"><</button></div>        
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="toggle_and_timeline(lpos)">@</button></div>
+        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="page_plus_timeline(lpos)">></button></div>        
+
+    </div>
+    cut Movie Action Bar ENDE -->
+
+    <!-- cut Movie Timeline START>
+    <div class="row g-2 row-cols-9 p-0 pt-1 pb-1 m-0 mt-1 mb-1 justify-content-lg-left">   
+            <button :class="b.class" v-for="b in bleft" :style="(-b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>
+            <input type="text" class="pos form-control-sm mt-0 col-2" placeholder="00:00:00" :value="pos" disabled>
+            <button :class="b.class" v-for="b in bright" :style="(b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>     
+    </div-->
+    <!-- cut Movie Timeline ENDE -->
+
+    <!--div class="row g-0 m-0 p-0" v-if="toggle_timeline">
+        <a v-for="ival in ltimeline.larray" class="col" @click="hpos({val: ival, type:'abs'})"><img  :src="pos2fname(ival)" class="mx-auto" width="100%"></a>
+    </div-->
+{% endblock %}
+
+{% block script %}
+    <script>
+        Vue.prototype.$host = "http://{{ host }}"
+        Vue.prototype.$ws = "ws://{{ host }}"
+    </script>
+    <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/Modal.js') }}"></script>
+    <!--script src="{{ url_for('static', filename='js/components/RQStatus.js') }}"></script-->
+    <script src="{{ url_for('static', filename='js/App2.js') }}"></script>
+{% endblock %}
