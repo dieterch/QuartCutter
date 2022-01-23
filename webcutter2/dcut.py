@@ -280,6 +280,12 @@ text='{(ftime[:2]+chr(92)+':'+ftime[3:5]+chr(92)+':'+ftime[-2:]).replace('0','O'
 			pass
 			#self.umount()
 
+	def _apsc_size(self,movie):
+		if os.path.exists(self._pathname(movie)+'.ap'):
+			return os.path.getsize(self._pathname(movie)+'.ap')
+		else:
+			return 0
+
 	def _cutfile(self,movie):
 		#check ob *_cut.ts Datei existiert.
 		try:

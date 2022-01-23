@@ -50,6 +50,7 @@
             },
             mydata: {
                 title: '-',
+                apsc_size: 0,
                 started: 0,
                 progress: 0
             },
@@ -106,29 +107,30 @@
                 }
             },
             bleft() {
+                // <i class="bi-alarm" style="color: black;"></i>
                 return [
-                    {name:"S", val:0, type:"abs", class:"btn btn-primary btn-sm sb_btn"},
-                    {name:"S15'", val:15*60, type:"abs", class:"btn btn-primary btn-sm sb_btn"},
-                    {name:"-30'", val:-1800, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:"-10'", val:-600, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:"-5'", val:-5*60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:"-1'", val:-60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:'-10"', val:-10, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
-                    {name:'-5"', val:-5, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
-                    {name:'-1"', val:-1, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
+                    {name:"",icon: '<i class="bi bi-align-start dbox-iconstyle"></i>', val:0, type:"abs", class:"btn btn-primary btn-sm sb_btn"},
+                    {name:" 15'", icon: '<i class="bi bi-align-start dbox-iconstyle"></i>', val:15*60, type:"abs", class:"btn btn-primary btn-sm sb_btn"},
+                    {name:" 30'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-1800, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:" 10'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-600, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:" 5'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-5*60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:" 1'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:' 10"', icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: white;"></i>', val:-10, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
+                    {name:' 5"', icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: white;"></i>', val:-5, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
+                    {name:' 1"', icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: white;"></i>', val:-1, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
                 ]
             },
             bright() {
                 return [
-                    {name:'+1"', val:1, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
-                    {name:'+5"', val:5, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},                    
-                    {name:'+10"', val:10, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},                    
-                    {name:"+1'", val:60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:"+5'", val:5*60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:"+10'", val:600, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:"+30'", val:1800, type:"rel", class:"btn btn-info btn-sm sb_btn"},
-                    {name:"E15'", val:this.pos_from_end(15*60), type:"abs", class:"btn btn-primary btn-sm sb_btn"},
-                    {name:"E", val:this.pos_from_end(0), type:"abs", class:"btn btn-primary btn-sm sb_btn"},
+                    {name:'1" ', icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: white;"></i>', val:1, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
+                    {name:'5" ', icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: white;"></i>', val:5, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},                    
+                    {name:'10" ', icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: white;"></i>', val:10, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},                    
+                    {name:"1' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"5' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:5*60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"10' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:600, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"30' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:1800, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"15' ",icon: '<i class="bi bi-align-end dbox-iconstyle"></i>', val:this.pos_from_end(15*60), type:"abs", class:"btn btn-primary btn-sm sb_btn"},
+                    {name:"",icon: '<i class="bi bi-align-end dbox-iconstyle"></i>', val:this.pos_from_end(0), type:"abs", class:"btn btn-primary btn-sm sb_btn"},
                 ]
             }
         },
@@ -208,7 +210,7 @@
                 if (pos === -999) {
                     return '/static/spinner_160x90.gif'
                 } else if (pos === -998) {
-                    return '/static/white.png'
+                    return '/static/background.png'
                 } else  {
                     return  '/static/' + this.ltimeline.basename.slice(0,-4) + '_' + pos2str(pos) + this.ltimeline.basename.slice(-4) + '?' + String(Math.random())
                 }
@@ -428,7 +430,8 @@ _cut File ?: ${this.lmovie_cut_info.cutfile}
                             { headers: { 'Content-type': 'application/json',}}
                         ).then((response) => {
                             clearInterval(this.eta_counter_id)
-                            this.mydata.title = 'starting ...'
+                            this.mydata.title = ' ... '
+                            this.apsc_size = 0
                             this.mydata.progress = 0
                             this.mydata.started = 1
                             this.mydata_timer_id = setInterval(function mdTimer() {

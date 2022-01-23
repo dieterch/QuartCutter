@@ -48,6 +48,17 @@ selection = {
     'pos_time' : '00:00:00'
     }
 
+
+@app.after_request
+async def add_header(response):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for x minutes.
+    """
+    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+    response.headers['Cache-Control'] = 'public, max-age=0'
+    return response
+
 @app.websocket('/ws')
 async def ws():
     while True:
@@ -228,6 +239,7 @@ async def do_cut():
 async def doProgress():
     mstatus = {
         'title': '-',
+        'apsc_size': 0,
         'progress': 0,
         'started': 0
     } 
@@ -261,6 +273,7 @@ async def doProgress():
             job = Job.fetch(job_id, connection=redis_connection)
             m = plex.MovieData(job.args[0])
             prog = cutter._movie_stats(*job.args)
+            apsc_size = cutter._apsc_size(m)
             #print(cutter._movie_stats(*job.args))
             d = {
                 'title': m.title,
@@ -273,6 +286,7 @@ async def doProgress():
             qd['started_jobs'].append(d)
             mstatus.update({
                 'title': m.title,
+                'apsc_size': apsc_size,
                 'progress': prog,
                 'started': q.started_job_registry.count               
             })

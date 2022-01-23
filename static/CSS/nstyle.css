@@ -1,7 +1,7 @@
 body {
-    height: 100vh;
-    width: 100vw;
-    margin: 0;
+    height: 90vh;
+    margin: 8px 0px 8px 8px;
+    background: rgb(36, 36, 36);
 }
 
 .btn:focus {
@@ -10,18 +10,17 @@ body {
   }
 
 .dcontainer {
-    height: 100vh;
     display: grid;
     box-sizing: border-box;
-    grid-template: 2rem 4.2rem 3rem auto 2rem / 90fr auto;
+    grid-template: 2rem 4.2rem 3rem auto 2rem / 80fr 170px;
     grid-template-areas: 
     "header header"
-    "dropbar dropbar"
+    "dropbar logo"
     "cutbar1 cutbar2"
     "main sidebar"
     "footer footer";
     background: rgb(36, 36, 36);
-    border: 3px solid white;
+    border: 3px solid rgb(36, 36, 36);
     gap: 0px;
 }
 
@@ -29,6 +28,14 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.dbox-header {
+    background: rgb(63, 62, 62);
+    color: white;
+    justify-content: left;
+    grid-area: header;
+    border-radius: 5px;
 }
 
 .dbox-content {
@@ -45,20 +52,22 @@ body {
     font-size: 0.6rem;
 }
 
-.dbox-header {
-    background: rgb(63, 62, 62);
-    color: white;
-    justify-content: left;
-    grid-area: header;
-}
-
 .dbox-dropbar {
     color: black;
     grid-area: dropbar;
 }
 
+.dbox-logo {
+    height: 80%;
+    width: auto;
+    margin: 30px 10px 20px 5px;
+    color: white;
+    border-radius: 0px;
+    grid-area: logo;
+}
+
 .dbox-cutbar1 {
-    margin: 0px;
+    margin: 0px 5px;
     grid-area: cutbar1;
 }
 
@@ -68,11 +77,99 @@ body {
     grid-area: cutbar2;
 }
 
-.dbox-cutbar2-btn {
-    width: 34px;
-    padding: 8px 2px;
-    margin: 0px 0px;
+.dbox-iconstyle {
+    font-size: 0.9rem; 
+    color: rgb(228, 230, 235);
 }
+
+.dbox-cutbar2-btn {
+    width: 50px;
+    padding: 4px 0px;
+    margin: 1px 5px;
+}
+
+
+
+.dbox-sidebar {
+    justify-content: center;
+    align-items:flex-start;
+    grid-area: sidebar;
+}
+
+.dbox-footer {
+    background: rgb(63, 62, 62);
+    color: white;
+    grid-area: footer;
+    justify-content: left;
+    border-radius: 5px;
+}
+
+.dbox-footer-content {
+    margin: 0px 5px;
+}
+
+/* sidebar grid */
+.sb_container {
+    display: grid;
+    grid-template-rows: auto auto auto 100fr;
+    grid-template-columns: 50fr 50fr;   
+}
+
+.sb_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sb-info {
+    border: 5px solid rgb(90, 90, 90);
+    border-radius: 2px;
+}
+
+.sb_box-pos {
+    font-size: 1.5em;
+    grid-column: 1 / -1;
+    grid-row: 1;
+    background: lightgrey;
+    margin: 0px 5px 1px 5px;
+}
+
+.sb_box-pos2 {
+    font-size: 1em;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    background: lightgrey;
+    margin: 1px 5px 1px 5px;   
+}
+
+.sb_box-len {
+    font-size: 1em;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 1px 5px 5px 5px;
+    background: rgb(36, 36, 36);
+    color: white; 
+}
+
+.sb_btn {
+    width: 70px;
+    height: 35px;
+    padding: 2px 3px;
+    margin: 2px 5px;
+}
+
+.sb_box-buttons1 {
+    flex-direction: column;
+    grid-column: 1;
+    grid-row: 4;
+}
+
+.sb_box-buttons2 {
+    flex-direction:column-reverse;
+    grid-column: 2;
+    grid-row: 4;
+}
+/* sidebar grid */
 
 /* main grid */
 .main_container {
@@ -101,87 +198,4 @@ body {
     max-width: 100%;
     height: auto;
 }
-
-.img-main {
-    width:100%
-}
 /* main grid */
-
-.dbox-sidebar {
-    justify-content: center;
-    align-items:flex-start;
-    grid-area: sidebar;
-}
-
-.dbox-footer {
-    background: rgb(63, 62, 62);
-    color: white;
-    grid-area: footer;
-    justify-content: left;
-}
-
-.dbox-footer-content {
-    margin: 0px 5px;
-}
-
-/* sidebar grid */
-.sb_container {
-    display: grid;
-    grid-template-rows: auto auto auto 100fr;
-    grid-template-columns: 50fr 50fr;   
-}
-
-.sb_box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.sb_box-pos {
-    font-size: 1.5em;
-    grid-column: 1 / -1;
-    grid-row: 1;
-    background: white;
-    margin: 0px 5px 1px 5px;
-    border: 1px solid black;
-    border-radius: 3px;    
-}
-
-.sb_box-pos2 {
-    font-size: 1em;
-    grid-column: 1 / -1;
-    grid-row: 2;
-    background: white;
-    margin: 1px 5px 1px 5px;
-    border: 1px solid black;
-    border-radius: 3px;    
-}
-
-.sb_box-len {
-    font-size: 1em;
-    grid-column: 1 / -1;
-    grid-row: 3;
-    margin: 1px 5px 5px 5px;
-    background: white;
-    border: 1px solid black;
-    border-radius: 3px;    
-}
-
-.sb_btn {
-    width: 50px;
-    padding: 2px 3px;
-    margin: 2px 5px;
-}
-
-.sb_box-buttons1 {
-    flex-direction: column;
-    grid-column: 1;
-    grid-row: 4;
-}
-
-.sb_box-buttons2 {
-    flex-direction:column-reverse;
-    grid-column: 2;
-    grid-row: 4;
-}
-/* sidebar grid */

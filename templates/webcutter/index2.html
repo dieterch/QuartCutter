@@ -90,30 +90,80 @@
             <!--div class="col badge bg-light col-auto me-1 my-auto"><button class="btn btn-outline-primary" @click="lmd()">↺ [[ lmovie_dummy ]]</button></div-->
         </div>
 
+        <!-- logo -->
+        <div class="dbox">
+            <img class="dbox-logo" src="/static/logo_light.png" alt="Logo">
+        </div>
+
         <!-- CutBar -->
         <!-- cut Movie Action Bar START -->
         <div class="dbox dbox-cutbar1">
 
-                <div class="col badge bg-primary me-1" v-if="t0_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">[[ t0 ]] In </button></div>
-                <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">--:--:-- In </button></div>
+                <div class="col badge bg-primary me-1" v-if="t0_valid">
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">
+                        <i class="bi bi-align-end dbox-iconstyle"></i> [[ t0 ]] 
+                    </button>
+                </div>
+                <div class="col badge bg-primary me-1" v-else>
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">
+                        <i class="bi bi-align-end dbox-iconstyle"></i> -- : -- : --
+                    </button>
+                </div>
 
-                <div class="col badge bg-primary me-1" v-if="t1_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">[[ t1 ]] Out</button></div>
-                <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">--:--:-- Out</button></div>
+                <div class="col badge bg-primary me-2" v-if="t1_valid">
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">
+                        [[ t1 ]] <i class="bi bi-align-start dbox-iconstyle"></i>
+                    </button>
+                </div>
+                <div class="col badge bg-primary me-2" v-else>
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">
+                        -- : -- : -- <i class="bi bi-align-start dbox-iconstyle"></i>
+                    </button>
+                </div>
 
-                <div class="col badge bg-primary me-1" v-if="cut_ok"><button class="btn btn-primary btn-sm" @click="toggle_inplace">inplace [[ inplace ? '✓' : '✗' ]]</button></div>
-                <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>inplace [[ inplace ? '✓' : '✗' ]]</button></div>
+                <div class="col badge bg-primary me-1" v-if="cut_ok">
+                    <button class="btn btn-primary btn-sm" @click="toggle_inplace">
+                        Inplace 
+                        <i class="bi bi-toggle-on dbox-iconstyle" v-if="inplace"></i>
+                        <i class="bi bi-toggle-off dbox-iconstyle" v-else></i>
+                    </button>
+                </div>
+                <div class="col badge bg-secondary me-1" v-else>
+                    <button class="btn btn-outline-secondary text-light btn-sm" disabled>
+                        Inplace 
+                        <i class="bi bi-toggle-on dbox-iconstyle" v-if="inplace"></i>
+                        <i class="bi bi-toggle-off dbox-iconstyle" v-else></i>
+                    </button>
+                </div>
 
-                <div class="col badge bg-danger me-1" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut</button></div>
-                <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div>
+                <!--div class="col badge bg-danger me-1" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut old</button></div>
+                <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div-->
 
-                <div class="col badge bg-danger" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut2">Cut2</button></div>
-                <div class="col badge bg-secondary" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut2</button></div>
+                <div class="col badge bg-danger" v-if="cut_ok">
+                    <button class="btn btn-danger btn-sm" @click="docut2">
+                        Cut <i class="bi bi-scissors dbox-iconstyle"></i>
+                    </button>
+                </div>
+                <div class="col badge bg-secondary" v-else>
+                    <button class="btn btn-outline-secondary text-light btn-sm" disabled>
+                        Cut <i class="bi bi-scissors dbox-iconstyle"></i>
+                    </button>
+                </div>
         </div>  
 
         <div class="dbox dbox-cutbar2">
-                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_minus_timeline(lpos)"><</button>       
-                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="toggle_and_timeline(lpos)">@</button>
-                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_plus_timeline(lpos)">></button>        
+                <!--button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_minus_timeline(lpos)"><</button-->       
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_minus_timeline(lpos)">
+                    <i class="bi bi-arrow-left-square dbox-iconstyle" ></i>
+                </button>       
+                <!--button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="toggle_and_timeline(lpos)">@</button-->
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="toggle_and_timeline(lpos)">
+                    <i class="bi bi-film dbox-iconstyle" ></i>
+                </button>
+                <!--button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_plus_timeline(lpos)">></button-->        
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_plus_timeline(lpos)">
+                    <i class="bi bi-arrow-right-square dbox-iconstyle" ></i>
+                </button>        
         </div>
         <!-- cut Movie Action Bar ENDE -->
 
@@ -137,30 +187,34 @@
         <!-- SideBar -->
         <div class="dbox dbox-sidebar">
             <div class="sb_container">
-                <div class="sb_box sb_box-pos">
+                <div class="sb_box sb_box-pos sb-info">
                     <div class="sb_box-content">
                         [[ pos ]]
                     </div>
                 </div>
 
-                <div class="sb_box sb_box-pos2">
+                <div class="sb_box sb_box-pos2 sb-info">
                     <div class="sb_box-content">
-                        [[ Math.trunc(lpos / 60) ]] min
+                        [[ Math.trunc(lpos / 60) ]]'
                     </div>
                 </div>
                 
-                <div class="sb_box sb_box-len">
+                <div class="sb_box sb_box-len ">
                     <div class="sb_box-content">
-                        [[ lmovie_info.duration ]] min
+                        [[ lmovie_info.duration ]]'
                     </div>
                 </div>
 
                 <div class="sb_box sb_box-buttons1">
-                    <button :class="b.class" v-for="b in bleft" :style="(-b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>
+                    <button :class="b.class" v-for="b in bleft" :style="(-b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">
+                        <span v-html="b.icon"></span><span>[[ b.name ]]</span>
+                    </button>
                 </div>
 
                 <div class="sb_box sb_box-buttons2">
-                    <button :class="b.class" v-for="b in bright" :style="(b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>
+                    <button :class="b.class" v-for="b in bright" :style="(b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">
+                        <span>[[ b.name ]]</span><span v-html="b.icon"></span>
+                    </button>
                 </div>
 
             </div>
@@ -169,57 +223,12 @@
         <!-- Footer -->
         <div class="dbox dbox-footer">
             <div id="rqstatus" class="dbox-footer-content">
-                <span v-if="rqstatus_visible()">cutting: [[ mydata.title ]] [[ mydata.progress ]]%</span>
-                <span v-else>cutting: -</span>
+                <span v-if="rqstatus_visible()">Cut: '[[ mydata.title ]]' apsc: [[ Math.trunc(mydata.apsc_size / 1024) ]] MB progress: [[ mydata.progress ]]%</span>
+                <span v-else>Cut: -</span>
             </div>
         </div>    
     </div>
 {% endblock %} 
-
-{% block content2 %}
-    <!-- cut Movie Action Bar START
-    <div class="row g-2 row-cols-7 justify-content-lg-center mt-1">
-
-        <div class="col badge bg-dark me-1"><button class="btn btn-dark btn-sm">[[ lmovie_info.duration ]] min</button></div>
-
-        <div class="col badge bg-primary me-1" v-if="t0_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">[[ t0 ]] In </button></div>
-        <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">--:--:-- In </button></div>
-
-        <div class="col badge bg-primary me-1" v-if="t1_valid"><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">[[ t1 ]] Out</button></div>
-        <div class="col badge bg-primary me-1" v-else><button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">--:--:-- Out</button></div>
-
-        <div class="col badge bg-primary me-1" v-if="cut_ok"><button class="btn btn-primary btn-sm" @click="toggle_inplace">inplace [[ inplace ? '✓' : '✗' ]]</button></div>
-        <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>inplace [[ inplace ? '✓' : '✗' ]]</button></div>
-
-        <div class="col badge bg-danger me-1" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut</button></div>
-        <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div>
-
-        <div class="col badge bg-danger" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut2">Cut2</button></div>
-        <div class="col badge bg-secondary" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut2</button></div>
-
-        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="tostart()">S</button></div>
-        <div class="col badge bg-light col-1 me-1"><button class="btn btn-outline-secondary btn-sm" @click="test" notdisabled>[[ Math.trunc(lpos / 60) ]] min</button></div>
-        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="toend()">E</button></div>
-
-        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="page_minus_timeline(lpos)"><</button></div>        
-        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="toggle_and_timeline(lpos)">@</button></div>
-        <div class="col badge bg-light col-auto me-1"><button class="btn btn-outline-primary btn-sm" @click="page_plus_timeline(lpos)">></button></div>        
-
-    </div>
-    cut Movie Action Bar ENDE -->
-
-    <!-- cut Movie Timeline START>
-    <div class="row g-2 row-cols-9 p-0 pt-1 pb-1 m-0 mt-1 mb-1 justify-content-lg-left">   
-            <button :class="b.class" v-for="b in bleft" :style="(-b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>
-            <input type="text" class="pos form-control-sm mt-0 col-2" placeholder="00:00:00" :value="pos" disabled>
-            <button :class="b.class" v-for="b in bright" :style="(b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">[[ b.name ]]</button>     
-    </div-->
-    <!-- cut Movie Timeline ENDE -->
-
-    <!--div class="row g-0 m-0 p-0" v-if="toggle_timeline">
-        <a v-for="ival in ltimeline.larray" class="col" @click="hpos({val: ival, type:'abs'})"><img  :src="pos2fname(ival)" class="mx-auto" width="100%"></a>
-    </div-->
-{% endblock %}
 
 {% block script %}
     <script>
