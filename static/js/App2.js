@@ -2,10 +2,10 @@
     console.log(Vue.prototype.$host)
     let myModalSlot = new VueModalSlot()
     //let myRQStatus = new VueRQStatus()
-    let ws = new WebSocket(`${Vue.prototype.$ws}/ws`)
-    ws.onmessage = function (event) {
-        console.log(event.data)
-    }
+    //let ws = new WebSocket(`${Vue.prototype.$ws}/ws`)
+    // ws.onmessage = function (event) {
+    //     console.log(event.data)
+    // }
     // let wsp = new WebSocket(`${Vue.prototype.$ws}/wsprogress`)
     // wsp.onmessage = function (event) {
     //     console.log(JSON.parse(event.data))

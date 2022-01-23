@@ -48,22 +48,22 @@ selection = {
     'pos_time' : '00:00:00'
     }
 
+# uncomment to disable caching
+# @app.after_request
+# async def add_header(response):
+#     """
+#     Add headers to both force latest IE rendering engine or Chrome Frame,
+#     and also to cache the rendered page for x minutes.
+#     """
+#     response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+#     response.headers['Cache-Control'] = 'public, max-age=0'
+#     return response
 
-@app.after_request
-async def add_header(response):
-    """
-    Add headers to both force latest IE rendering engine or Chrome Frame,
-    and also to cache the rendered page for x minutes.
-    """
-    response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
-    response.headers['Cache-Control'] = 'public, max-age=0'
-    return response
-
-@app.websocket('/ws')
-async def ws():
-    while True:
-        data = await websocket.receive()
-        await websocket.send(f"echo {data}")
+# @app.websocket('/ws')
+# async def ws():
+#     while True:
+#         data = await websocket.receive()
+#         await websocket.send(f"echo {data}")
 
 @app.route("/delay/<int:secs>")
 async def do_delay(secs):
