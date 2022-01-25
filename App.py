@@ -35,16 +35,27 @@ q = Queue('QuartCutter', connection=redis_connection, default_timeout=600)
 
 app= Quart(__name__)
 
+class iseason:
+    title = 'None'
+class iepisode:
+    title = 'None'
 initial_section = plex.sections[0]
-initial_movie_key = 0
+initial_season = iseason()
+initial_movie_key = initial_episode_key = 0
 initial_movie = initial_section.recentlyAdded()[initial_movie_key]
+initial_episode = iepisode()
 
 global selection
 selection = { 
-    'sections' : [s for s in plex.sections if s.type == 'movie'],
+    'sections' : [s for s in plex.sections if ((s.type == 'movie') or (s.type == 'show'))],
     'section' : initial_section,
+    'section_type': initial_section.type,
     'movies' : initial_section.recentlyAdded(),
     'movie' : initial_movie,
+    'seasons' : [],
+    'season' : initial_season,
+    'episodes' : [],
+    'episode' : '',
     'pos_time' : '00:00:00'
     }
 
@@ -65,12 +76,12 @@ selection = {
 #         data = await websocket.receive()
 #         await websocket.send(f"echo {data}")
 
-@app.route("/delay/<int:secs>")
-async def do_delay(secs):
-    t0 = time.time()
-    job = q.enqueue_call(cutter._long_runtask, args=(secs,))
-    t1 = time.time()
-    return {'result': (t1-t0)}
+# @app.route("/delay/<int:secs>")
+# async def do_delay(secs):
+#     t0 = time.time()
+#     job = q.enqueue_call(cutter._long_runtask, args=(secs,))
+#     t1 = time.time()
+#     return {'result': (t1-t0)}
 
 @app.route("/selection")
 async def get_selection():
@@ -78,8 +89,13 @@ async def get_selection():
     return { 
         'sections': [s.title for s in selection['sections']], 
         'section': selection['section'].title,
+        'section_type': selection['section'].type,
         'movies': [m.title for m in selection['movies']], 
         'movie': selection['movie'].title,
+        'seasons': [season.title for season in selection['movie'].seasons()] if selection['section'].type == 'show' else [],
+        'season': selection['season'].title,
+        'episodes': [ep.title for ep in selection['episodes']],
+        #'episode': selection['episode'].title
         'pos_time' : selection['pos_time']    
         }
 
@@ -98,6 +114,23 @@ async def _update_section(section_name, force=False):
         #print(f"_update_selection else clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
     return selection['section']    
 
+# section related stuff
+async def _update_season(season_name, force=False):
+    global selection
+    #print(f"\n{selection['section'].title} != {section_name}, {(selection['section'].title != section_name)}") # beim ersten Aufruf kommt der Funktionsname zurück, nicht das Ergebnis => if clause ...
+    if ((selection['season'].title != season_name) or force): 
+        print('***********',season_name)
+        series = selection['movie']
+        season = series.season(season_name)
+        eps = season.episodes()
+        default_episode = eps[initial_episode_key]
+        selection.update({ 'season' : season, 'episodes' : eps, 'episode' : default_episode })
+        #print(f"_update_selection if clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
+    else:
+        pass
+        #print(f"_update_selection else clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
+    return selection['season']  
+
 @app.route("/update_section", methods=['POST'])
 async def update_section():
     global selection
@@ -106,6 +139,16 @@ async def update_section():
         section_name = req['section']
         await _update_section(section_name)        
         print(f"update_section: {pf(req)}")
+        return redirect(url_for('index'))
+
+@app.route("/update_season", methods=['POST'])
+async def update_season():
+    global selection
+    if request.method == 'POST':
+        req = await request.json
+        season_name = req['season']
+        await _update_season(season_name)        
+        print(f"update_season: {pf(req)}")
         return redirect(url_for('index'))
 
 @app.route("/force_update_section")

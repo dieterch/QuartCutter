@@ -16,7 +16,12 @@
         data: {
             sections: [],
             section: '',
+            section_type: 'movie',
             movies: [],
+            seasons: [],
+            season: '',
+            episodes: [],
+            episode: '',
             lmovie: '',
             lmovie_dummy:0,
             lmovie_info: Object(),
@@ -62,6 +67,9 @@
             },
             totalmovies() {
                 return this.movies.length
+            },
+            totalseasons() {
+                return this.seasons.length
             },
             movie: {
                 get() {
@@ -179,16 +187,35 @@
                             console.log('error: ' + error); 
                     });
                 },
+            update_season() {
+                return axios.post(`${Vue.prototype.$host}/update_season`,
+                    { 
+                        season: this.season
+                    },
+                    { 
+                        headers: { 'Content-type': 'application/json', }
+                    }).then((response) => {
+                            console.log('season: ' + this.season);
+                            this.load_selection();
+                    }).catch( error => { 
+                            console.log('error: ' + error); 
+                    });
+                },
             load_selection() {
                 axios
                 //.get(`${Vue.prototype.$host}/sections`)
                 .get(`${Vue.prototype.$host}/selection`)
                 .then(response => {
-                    //console.log('in created', response.data)
+                    console.log('in created', response.data)
                     this.sections = response.data.sections;
                     this.section = response.data.section;
+                    this.section_type = response.data.section_type;
                     this.movies = response.data.movies;
                     this.movie = response.data.movie;
+                    this.seasons = response.data.seasons;
+                    this.season = response.data.season;
+                    this.episodes = response.data.episodes;
+                    this.episode = response.data.episode;
                     this.pos = str2pos(response.data.pos_time)
                     //this.loadmovies()
                 }).catch( error => { 

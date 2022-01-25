@@ -87,6 +87,22 @@
                     </option>                               
                 </select>
             </div>
+            <div class="dropbox dbox-content" v-if="section_type == 'show'">
+                <label class="drop-label" for="vueSeasonsID" >[[ totalseasons ]] Seasons</label>
+                <select id="vueSeasonsID" v-model='season' class="form-select" @change="update_season">
+                        <option v-for="season in seasons" v-bind:value="season">
+                            [[ season ]]
+                        </option>            
+                </select>
+            </div>
+            <div class="dropbox dbox-content" v-if="section_type == 'show'">
+                <label class="drop-label" for="vueMovieID" >xx Episodes</label>
+                <select id="vueMovieID" v-model='movie' class="form-select" >
+                    <option v-for="movie in movies" v-bind:value="movie">
+                        [[ movie ]]
+                    </option>                               
+                </select>
+            </div>
             <!--div class="col badge bg-light col-auto me-1 my-auto"><button class="btn btn-outline-primary" @click="lmd()">↺ [[ lmovie_dummy ]]</button></div-->
         </div>
 
@@ -99,12 +115,12 @@
         <!-- cut Movie Action Bar START -->
         <div class="dbox dbox-cutbar1">
 
-                <div class="col badge bg-primary me-1" v-if="t0_valid">
+                <div class="col badge bg-primary me-2" v-if="t0_valid">
                     <button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">
                         <i class="bi bi-align-end dbox-iconstyle"></i> [[ t0 ]] 
                     </button>
                 </div>
-                <div class="col badge bg-primary me-1" v-else>
+                <div class="col badge bg-primary me-2" v-else>
                     <button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">
                         <i class="bi bi-align-end dbox-iconstyle"></i> -- : -- : --
                     </button>
@@ -121,14 +137,14 @@
                     </button>
                 </div>
 
-                <div class="col badge bg-primary me-1" v-if="cut_ok">
+                <div class="col badge bg-primary me-2" v-if="cut_ok">
                     <button class="btn btn-primary btn-sm" @click="toggle_inplace">
                         Inplace 
                         <i class="bi bi-toggle-on dbox-iconstyle" v-if="inplace"></i>
                         <i class="bi bi-toggle-off dbox-iconstyle" v-else></i>
                     </button>
                 </div>
-                <div class="col badge bg-secondary me-1" v-else>
+                <div class="col badge bg-secondary me-2" v-else>
                     <button class="btn btn-outline-secondary text-light btn-sm" disabled>
                         Inplace 
                         <i class="bi bi-toggle-on dbox-iconstyle" v-if="inplace"></i>
