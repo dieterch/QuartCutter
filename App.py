@@ -35,27 +35,22 @@ q = Queue('QuartCutter', connection=redis_connection, default_timeout=600)
 
 app= Quart(__name__)
 
-class iseason:
-    title = 'None'
-class iepisode:
-    title = 'None'
+# initialization.
 initial_section = plex.sections[0]
-initial_season = iseason()
-initial_movie_key = initial_episode_key = 0
+initial_movie_key = initial_series_key = initial_season_key = 0
 initial_movie = initial_section.recentlyAdded()[initial_movie_key]
-initial_episode = iepisode()
 
 global selection
 selection = { 
+    'section_type': initial_section.type,
     'sections' : [s for s in plex.sections if ((s.type == 'movie') or (s.type == 'show'))],
     'section' : initial_section,
-    'section_type': initial_section.type,
+    'seasons' : None,
+    'season' : None,
+    'series' : None,
+    'serie' : None,
     'movies' : initial_section.recentlyAdded(),
     'movie' : initial_movie,
-    'seasons' : [],
-    'season' : initial_season,
-    'episodes' : [],
-    'episode' : '',
     'pos_time' : '00:00:00'
     }
 
@@ -86,50 +81,75 @@ selection = {
 @app.route("/selection")
 async def get_selection():
     global selection
-    return { 
-        'sections': [s.title for s in selection['sections']], 
-        'section': selection['section'].title,
-        'section_type': selection['section'].type,
-        'movies': [m.title for m in selection['movies']], 
-        'movie': selection['movie'].title,
-        'seasons': [season.title for season in selection['movie'].seasons()] if selection['section'].type == 'show' else [],
-        'season': selection['season'].title,
-        'episodes': [ep.title for ep in selection['episodes']],
-        #'episode': selection['episode'].title
-        'pos_time' : selection['pos_time']    
+    ret = {
+            'sections': [s.title for s in selection['sections']], 
+            'section': selection['section'].title,
         }
+    if selection['section'].type == "movie": #movie sections
+        ret.update({ 
+            'section_type': 'movie',
+            'movies': [m.title for m in selection['movies']], 
+            'movie': selection['movie'].title,
+            'pos_time' : selection['pos_time']    
+        })
+    elif selection['section'].type == "show": #series section
+        ret.update({
+            'section_type': 'show',
+            'series':[s.title for s in selection['series']],
+            'serie': selection['serie'].title,
+            'seasons': [season.title for season in selection['serie'].seasons()] if selection['section'].type == 'show' else [],
+            'season': selection['season'].title,
+            'movies': [e.title for e in selection['season']], 
+            'movie': selection['movie'].title,
+            'pos_time' : selection['pos_time']   
+        })
+    else:
+        raise ValueError
+    return ret
+
+
+
 
 # section related stuff
 async def _update_section(section_name, force=False):
     global selection
-    #print(f"\n{selection['section'].title} != {section_name}, {(selection['section'].title != section_name)}") # beim ersten Aufruf kommt der Funktionsname zurück, nicht das Ergebnis => if clause ...
-    if ((selection['section'].title != section_name) or force): 
-        sec = plex.server.library.section(section_name)
-        mvs = sec.recentlyAdded()
-        default_movie = mvs[initial_movie_key]
-        selection.update({ 'section' : sec, 'movies' : mvs, 'movie' : default_movie })
-        #print(f"_update_selection if clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
+    if ((selection['section'].title != section_name) or force):
+        section = plex.server.library.section(section_name)
+        if section.type == 'movie':
+            movies = section.recentlyAdded()
+            default_movie = movies[initial_movie_key]
+            selection.update({ 
+                'section_type': 'movie',
+                'section' : section,
+                'series' : None,
+                'serie' : None, 
+                'seasons' : None,
+                'season' : None,
+                'movies' : movies, 
+                'movie' : default_movie 
+            })
+        elif section.type == 'show':
+            series = section.all()
+            serie = series[initial_series_key]
+            seasons = serie.seasons()
+            season = seasons[initial_season_key]
+            movies = season.episodes()
+            default_movie = movies[initial_movie_key]
+            selection.update({ 
+                'section_type': 'show',
+                'section' : section,
+                'series' : series,
+                'serie' : serie, 
+                'seasons' : seasons,
+                'season' : season,
+                'movies' : movies, 
+                'movie' : default_movie 
+            })
+        else:
+            raise ValueError('Unknown Plex section type.')           
     else:
-        pass
-        #print(f"_update_selection else clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
+        pass # no change in section
     return selection['section']    
-
-# section related stuff
-async def _update_season(season_name, force=False):
-    global selection
-    #print(f"\n{selection['section'].title} != {section_name}, {(selection['section'].title != section_name)}") # beim ersten Aufruf kommt der Funktionsname zurück, nicht das Ergebnis => if clause ...
-    if ((selection['season'].title != season_name) or force): 
-        print('***********',season_name)
-        series = selection['movie']
-        season = series.season(season_name)
-        eps = season.episodes()
-        default_episode = eps[initial_episode_key]
-        selection.update({ 'season' : season, 'episodes' : eps, 'episode' : default_episode })
-        #print(f"_update_selection if clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
-    else:
-        pass
-        #print(f"_update_selection else clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
-    return selection['season']  
 
 @app.route("/update_section", methods=['POST'])
 async def update_section():
@@ -140,6 +160,54 @@ async def update_section():
         await _update_section(section_name)        
         print(f"update_section: {pf(req)}")
         return redirect(url_for('index'))
+
+
+async def _update_serie(serie_name, force=False):
+    global selection
+    if ((selection['serie'].title != serie_name) or force): 
+        print('*********** new',serie_name)
+        section = selection['section']
+        serie = [s for s in section.all() if s.title == serie_name][0]
+        seasons = serie.seasons()
+        season = seasons[initial_season_key]
+        movies = season.episodes()
+        default_movie = movies[initial_movie_key]
+        selection.update({ 
+            'serie': serie, 
+            'seasons' : seasons,
+            'season': season, 
+            'movies' : movies, 
+            'movie' : default_movie 
+        })
+    else:
+        pass
+    return selection['serie'] 
+
+@app.route("/update_serie", methods=['POST'])
+async def update_serie():
+    global selection
+    if request.method == 'POST':
+        req = await request.json
+        serie_name = req['serie']
+        await _update_serie(serie_name)        
+        print(f"update_serie: {pf(req)}")
+        return redirect(url_for('index'))
+
+
+async def _update_season(season_name, force=False):
+    global selection
+    if ((selection['season'].title != season_name) or force): 
+        print('*********** new',season_name)
+        serie = selection['serie']
+        season = serie.season(season_name)
+        movies = season.episodes()
+        default_movie = movies[initial_movie_key]
+        selection.update({ 'season' : season, 'movies' : movies, 'movie' : default_movie })
+        #print(f"_update_selection if clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
+    else:
+        pass
+        #print(f"_update_selection else clause:\n{pf({k:v for k,v in selection.items() if k in ['section','movie','pos','frame']})}\n")
+    return selection['season'] 
 
 @app.route("/update_season", methods=['POST'])
 async def update_season():

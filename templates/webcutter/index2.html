@@ -79,24 +79,25 @@
                         </option>            
                 </select>
             </div>
-            <div class="dropbox dbox-content">
-                <label class="drop-label" for="vueMovieID" >[[ totalmovies ]] recently added Movies</label>
-                <select id="vueMovieID" v-model='movie' class="form-select" >
-                    <option v-for="movie in movies" v-bind:value="movie">
-                        [[ movie ]]
+            <div class="dropbox dbox-content" v-if="section_type == 'show'">
+                <label class="drop-label" for="vueSeriesID" >[[ totalseries ]] Series</label>
+                <select id="vueSeriesID" v-model='serie' class="form-select" @change="update_serie">
+                    <option v-for="serie in series" v-bind:value="serie">
+                        [[ serie ]]
                     </option>                               
                 </select>
             </div>
             <div class="dropbox dbox-content" v-if="section_type == 'show'">
                 <label class="drop-label" for="vueSeasonsID" >[[ totalseasons ]] Seasons</label>
                 <select id="vueSeasonsID" v-model='season' class="form-select" @change="update_season">
-                        <option v-for="season in seasons" v-bind:value="season">
-                            [[ season ]]
-                        </option>            
+                    <option v-for="season in seasons" v-bind:value="season">
+                        [[ season ]]
+                    </option>            
                 </select>
             </div>
-            <div class="dropbox dbox-content" v-if="section_type == 'show'">
-                <label class="drop-label" for="vueMovieID" >xx Episodes</label>
+            <div class="dropbox dbox-content">
+                <label class="drop-label" for="vueMovieID" v-if="section_type == 'show'">[[ totalmovies ]] Movies</label>
+                <label class="drop-label" for="vueMovieID" v-else>[[ totalmovies ]] recently added Movies</label>
                 <select id="vueMovieID" v-model='movie' class="form-select" >
                     <option v-for="movie in movies" v-bind:value="movie">
                         [[ movie ]]

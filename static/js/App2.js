@@ -20,8 +20,8 @@
             movies: [],
             seasons: [],
             season: '',
-            episodes: [],
-            episode: '',
+            series: [],
+            serie: '',
             lmovie: '',
             lmovie_dummy:0,
             lmovie_info: Object(),
@@ -70,6 +70,9 @@
             },
             totalseasons() {
                 return this.seasons.length
+            },
+            totalseries() {
+                return this.series.length
             },
             movie: {
                 get() {
@@ -143,9 +146,9 @@
             }
         },
         methods: {
-            lmd() {
-                this.lmovie_dummy += 1
-                ws.send('bob ' + String(this.lmovie_dummy))
+            //lmd() {
+                //this.lmovie_dummy += 1
+                //ws.send('bob ' + String(this.lmovie_dummy))
                 //myRQStatus.sendMessage('bob')
                 // wsp.send({foo: 'bar'})
                 // Request({foo: 'bar'})
@@ -155,7 +158,7 @@
                 //     .catch(error => {
                 //         console.log('error: ' + error)
                 //     })
-            },
+            //},
             rqstatus_visible() {
                 return this.mydata.started > 0
             },
@@ -187,7 +190,21 @@
                             console.log('error: ' + error); 
                     });
                 },
-            update_season() {
+                update_serie() {
+                    return axios.post(`${Vue.prototype.$host}/update_serie`,
+                        { 
+                            serie: this.serie
+                        },
+                        { 
+                            headers: { 'Content-type': 'application/json', }
+                        }).then((response) => {
+                                console.log('serie: ' + this.serie);
+                                this.load_selection();
+                        }).catch( error => { 
+                                console.log('error: ' + error); 
+                        });
+                    },    
+                update_season() {
                 return axios.post(`${Vue.prototype.$host}/update_season`,
                     { 
                         season: this.season
@@ -214,8 +231,8 @@
                     this.movie = response.data.movie;
                     this.seasons = response.data.seasons;
                     this.season = response.data.season;
-                    this.episodes = response.data.episodes;
-                    this.episode = response.data.episode;
+                    this.series = response.data.series;
+                    this.serie = response.data.serie;
                     this.pos = str2pos(response.data.pos_time)
                     //this.loadmovies()
                 }).catch( error => { 
