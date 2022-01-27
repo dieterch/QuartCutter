@@ -94,7 +94,14 @@ body {
     grid-area: sidebar;
 }
 
+.url {
+    font-size: xx-small;
+    color: rgb(99, 99, 99);
+}
+
 .dbox-footer {
+    display: block;
+    height: 2.5rem;
     background: rgb(63, 62, 62);
     color: white;
     grid-area: footer;
@@ -172,8 +179,12 @@ body {
     flex-direction: column;
     grid-column: 1;
     grid-row: 5;
-    color: white;
+}
 
+.sb_button_streamURL {
+    flex-direction: column;
+    grid-column: 2;
+    grid-row: 5;
 }
 /* sidebar grid */
 

@@ -1,16 +1,11 @@
     // Globale Funktionen
     console.log(Vue.prototype.$host)
     let myModalSlot = new VueModalSlot()
-    //let myRQStatus = new VueRQStatus()
-    //let ws = new WebSocket(`${Vue.prototype.$ws}/ws`)
-    // ws.onmessage = function (event) {
-    //     console.log(event.data)
-    // }
-    // let wsp = new WebSocket(`${Vue.prototype.$ws}/wsprogress`)
-    // wsp.onmessage = function (event) {
-    //     console.log(JSON.parse(event.data))
-    // }
-    // Vue App
+
+    if (navigator.clipboard) {
+        console.log('Clipboard API available.')
+    }
+
     const vueApp = new Vue({
         el: '#vueApp',
         data: {

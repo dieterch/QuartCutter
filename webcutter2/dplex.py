@@ -211,7 +211,8 @@ class PlexInterface:
             'duration':movie.duration // 60000,
             'duration_sec_rest': (movie.duration % 60000) // 1000, 
             'year':movie.year,
-            'guid':movie.guid.split('/')[-1]
+            'guid':movie.guid.split('/')[-1],
+            'streamURL':movie.getStreamURL()
         }
 
     def double_movies(self):

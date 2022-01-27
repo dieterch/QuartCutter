@@ -62,8 +62,9 @@
 {% endblock %}
 
 {% block content %} 
-    <div class="dcontainer">
+    <!--button data-copy="This text has been copied from the data-copy attribute of the button.">copy text in data-copy attribute</button-->
 
+    <div class="dcontainer">
         <!-- Header -->
         <div class="dbox dbox-header">
             <div class="dbox-content">Quart Web Cutter</div>
@@ -240,6 +241,12 @@
                     </button>
                 </div>
 
+                <!--div class="sb_box sb_button_streamURL">
+                    <button class="btn btn-primary btn-sm sb_btn" @click="streamURL()">
+                        <span>URL</span>
+                    </button>
+                </div-->
+
             </div>
         </div>
 
@@ -248,6 +255,9 @@
             <div id="rqstatus" class="dbox-footer-content">
                 <span v-if="rqstatus_visible()">Cut: '[[ mydata.title ]]' apsc: [[ Math.trunc(mydata.apsc_size / 1024) ]] MB progress: [[ mydata.progress ]]%</span>
                 <span v-else>Cut: -</span>
+            </div>
+            <div class="dbox-footer-content url">
+                [[ lmovie_info.streamURL ]]
             </div>
         </div>    
     </div>
