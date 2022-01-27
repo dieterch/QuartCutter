@@ -159,6 +159,19 @@
                 //         console.log('error: ' + error)
                 //     })
             //},
+            analyze() {
+                return axios.post(`${Vue.prototype.$host}/analyze`,
+                    { 
+                        movie: this.lmovie
+                    },
+                    { 
+                        headers: { 'Content-type': 'application/json', }
+                    }).then((response) => {
+                            console.log('analyze: ' + response.data);
+                    }).catch( error => { 
+                            console.log('error: ' + error); 
+                    });
+                },
             rqstatus_visible() {
                 return this.mydata.started > 0
             },

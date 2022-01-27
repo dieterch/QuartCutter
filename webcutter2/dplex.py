@@ -176,9 +176,9 @@ class PlexInterface:
     def loadallsections(self):
         self.loadsections(self.sections)
 
-    def content(self, section):
+    def content(self, section, cache=False):
         #t0 = time.time()
-        if section in self._sectioncache:
+        if section in self._sectioncache and cache:
             pass
         else:
             self._sectioncache[section] = {

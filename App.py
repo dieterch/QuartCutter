@@ -258,6 +258,19 @@ async def set_movie_get_info():
         print(f"\nmovie_info: {req} -> \n{pf(m_info)}")
         return m_info       
 
+@app.route("/analyze", methods=['POST'])
+async def analyse():
+    global selection
+    if request.method == 'POST':
+        req = await request.json
+        movie_name = req['movie']
+        if movie_name != '':
+            m = await _update_movie(movie_name)
+            m.analyze()
+            return 'ok'
+        else:
+            return 'not ok' 
+
 @app.route("/timeline", methods=['POST'])
 async def timeline():
     global selection

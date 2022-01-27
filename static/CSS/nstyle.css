@@ -88,8 +88,6 @@ body {
     margin: 1px 5px;
 }
 
-
-
 .dbox-sidebar {
     justify-content: center;
     align-items:flex-start;
@@ -111,7 +109,7 @@ body {
 /* sidebar grid */
 .sb_container {
     display: grid;
-    grid-template-rows: auto auto auto 100fr;
+    grid-template-rows: auto auto auto 100fr auto;
     grid-template-columns: 50fr 50fr;   
 }
 
@@ -168,6 +166,14 @@ body {
     flex-direction:column-reverse;
     grid-column: 2;
     grid-row: 4;
+}
+
+.sb_button_analyze {
+    flex-direction: column;
+    grid-column: 1;
+    grid-row: 5;
+    color: white;
+
 }
 /* sidebar grid */
 
