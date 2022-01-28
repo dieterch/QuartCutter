@@ -1,5 +1,6 @@
 import asyncio
 import os
+import io
 import subprocess
 import time
 import json
@@ -271,6 +272,38 @@ async def analyse():
         else:
             return 'not ok' 
 
+@app.route('/streamurl.xspf')
+async def streamurl():
+    """
+    create an *.xspf file for vlc on the fly.
+    """
+    global selection
+    m = selection['movie']
+    #url = 'http://192.168.15.10:32400/video/:/transcode/universal/start.m3u8?X-Plex-Platform=Chrome&amp;copyts=1&amp;mediaIndex=0&amp;offset=0&amp;path=%2Flibrary%2Fmetadata%2F20317&amp;X-Plex-Token=7YgcyPLqGVM-PVxq2QVo'
+    url = m.getStreamURL().replace('&','&amp;')
+    #duration = 1424560
+    duration = m.duration
+    tfile =f"""<?xml version="1.0" encoding="UTF-8"?>
+<playlist xmlns="http://xspf.org/ns/0/" xmlns:vlc="http://www.videolan.org/vlc/playlist/ns/0/" version="1">
+	<title>Wiedergabeliste</title>
+	<trackList>
+		<track>
+			<location>{url}</location>
+			<duration>{duration}</duration>
+			<extension application="http://www.videolan.org/vlc/playlist/0">
+				<vlc:id>0</vlc:id>
+			</extension>
+		</track>
+	</trackList>
+	<extension application="http://www.videolan.org/vlc/playlist/0">
+		<vlc:item tid="0"/>
+	</extension>
+</playlist>
+"""
+    with open('static/stream.xspf', 'w', encoding='utf-8') as f:
+        f.write(tfile)
+    return await send_file('static/stream.xspf')
+
 @app.route("/timeline", methods=['POST'])
 async def timeline():
     global selection
@@ -501,7 +534,7 @@ if __name__ == '__main__':
     print('''
 \033[H\033[J
 ************************************************
-* Quart WebCutter V0.01 (c)2022 Dieter Chvatal *
+* Quart WebCutter V0.02 (c)2022 Dieter Chvatal *
 * Async Backend for Webcutter                  *
 ************************************************
 ''')
