@@ -154,6 +154,15 @@
                 //         console.log('error: ' + error)
                 //     })
             //},
+            // streamURL() {
+            //     axios.get(`${Vue.prototype.$host}/streamurl.xspf${'?'+String(Math.random())}`)
+            //         .then(response => {
+            //             console.log(response.data);
+            //         })
+            //         .catch(error => {
+            //             console.log('error: ' + error); 
+            //         })
+            // },
             analyze() {
                 return axios.post(`${Vue.prototype.$host}/analyze`,
                     { 
