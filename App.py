@@ -298,7 +298,7 @@ async def streamsection():
     movies = selection['movies']
     data = []
     for i,m in enumerate(movies):
-        data.append({'i':i, 'title':m.title, 'url': m.getStreamURL().replace('&','&amp;'), 'dur': m.duration})
+        data.append({'i':i, 'title':m.title.replace('&','&amp;'), 'url': m.getStreamURL().replace('&','&amp;'), 'dur': m.duration})
     j2_template = Template(xspf_template)
     w = j2_template.render(data=data)    
     b = BytesIO(w.encode('utf-8','xmlcharrefreplace'))
@@ -311,7 +311,7 @@ async def streamsection():
 async def streamurl():
     global selection
     m = selection['movie']
-    data = [{'i':0, 'title':m.title, 'url': m.getStreamURL().replace('&','&amp;'), 'dur': m.duration}]
+    data = [{'i':0, 'title':m.title.replace('&','&amp;'), 'url': m.getStreamURL().replace('&','&amp;'), 'dur': m.duration}]
     j2_template = Template(xspf_template)
     w = j2_template.render(data=data)    
     b = BytesIO(w.encode('utf-8','xmlcharrefreplace'))

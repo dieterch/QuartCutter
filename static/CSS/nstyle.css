@@ -116,7 +116,7 @@ body {
 /* sidebar grid */
 .sb_container {
     display: grid;
-    grid-template-rows: auto auto auto 100fr auto;
+    grid-template-rows: auto auto auto 100fr;
     grid-template-columns: 50fr 50fr;   
 }
 
@@ -173,18 +173,6 @@ body {
     flex-direction:column-reverse;
     grid-column: 2;
     grid-row: 4;
-}
-
-.sb_button_analyze {
-    flex-direction: column;
-    grid-column: 1;
-    grid-row: 5;
-}
-
-.sb_button_streamURL {
-    flex-direction: column;
-    grid-column: 2;
-    grid-row: 5;
 }
 /* sidebar grid */
 
