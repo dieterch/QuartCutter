@@ -1,32 +1,22 @@
     // Globale Funktionen
     console.log(Vue.prototype.$host)
-    const zeroPad = (num, places) => String(num).padStart(places, '0')
-    const pos2str = (pos) => {
-        pos = (pos >= 0) ? pos : 0 
-        return `${zeroPad(Math.trunc(pos / 3600),2)}:${zeroPad(Math.trunc((pos % 3600) / 60),2)}:${zeroPad(Math.trunc(pos % 60,2),2)}`
-    }
-    const str2pos = (st) => {
-        erg = parseInt(String(st).slice(0,2))*3600 + parseInt(String(st).slice(3,5))*60 + parseInt(String(st).slice(-2))
-        return erg
-    }
     let myModalSlot = new VueModalSlot()
-    //let myRQStatus = new VueRQStatus()
 
-    let ws = new WebSocket(`${Vue.prototype.$ws}/ws`)
-    ws.onmessage = function (event) {
-        console.log(event.data)
+    if (navigator.clipboard) {
+        console.log('Clipboard API available.')
     }
-    // let wsp = new WebSocket(`${Vue.prototype.$ws}/wsprogress`)
-    // wsp.onmessage = function (event) {
-    //     console.log(JSON.parse(event.data))
-    // }
-    // Vue App
+
     const vueApp = new Vue({
         el: '#vueApp',
         data: {
             sections: [],
             section: '',
+            section_type: 'movie',
             movies: [],
+            seasons: [],
+            season: '',
+            series: [],
+            serie: '',
             lmovie: '',
             lmovie_dummy:0,
             lmovie_info: Object(),
@@ -60,6 +50,7 @@
             },
             mydata: {
                 title: '-',
+                apsc_size: 0,
                 started: 0,
                 progress: 0
             },
@@ -71,6 +62,12 @@
             },
             totalmovies() {
                 return this.movies.length
+            },
+            totalseasons() {
+                return this.seasons.length
+            },
+            totalseries() {
+                return this.series.length
             },
             movie: {
                 get() {
@@ -116,34 +113,37 @@
                 }
             },
             bleft() {
+                // <i class="bi-alarm" style="color: black;"></i>
                 return [
-                    {name:"S15'", val:15*60, type:"abs", class:"btn btn-outline-primary btn-sm col mt-0 me-1"},
-                    {name:"-30'", val:-1800, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 me-1"},
-                    {name:"-10'", val:-600, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 me-1"},
-                    {name:"-5'", val:-5*60, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 me-1"},
-                    {name:"-1'", val:-60, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 me-1"},
-                    {name:'-10"', val:-10, type:"rel", class:"btn btn-outline-secondary btn-sm col mt-0 me-1"},
-                    {name:'-5"', val:-5, type:"rel", class:"btn btn-outline-secondary btn-sm col mt-0 me-1"},
-                    {name:'-1"', val:-1, type:"rel", class:"btn btn-outline-secondary btn-sm col mt-0 me-1"},
+                    {name:"",icon: '<i class="bi bi-align-start dbox-iconstyle"></i>', val:0, type:"abs", class:"btn btn-primary btn-sm sb_btn"},
+                    {name:" 15'", icon: '<i class="bi bi-align-start dbox-iconstyle"></i>', val:15*60, type:"abs", class:"btn btn-primary btn-sm sb_btn"},
+                    {name:" 30'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-1800, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:" 10'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-600, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:" 5'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-5*60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:" 1'", icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: black;"></i>', val:-60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:' 10"', icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: white;"></i>', val:-10, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
+                    {name:' 5"', icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: white;"></i>', val:-5, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
+                    {name:' 1"', icon: '<i class="bi bi-arrow-bar-left dbox-iconstyle" style="color: white;"></i>', val:-1, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
                 ]
             },
             bright() {
                 return [
-                    {name:'+1"', val:1, type:"rel", class:"btn btn-outline-secondary btn-sm col mt-0 ms-1"},
-                    {name:'+5"', val:5, type:"rel", class:"btn btn-outline-secondary btn-sm col mt-0 ms-1"},                    
-                    {name:'+10"', val:10, type:"rel", class:"btn btn-outline-secondary btn-sm col mt-0 ms-1"},                    
-                    {name:"+1'", val:60, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 ms-1"},
-                    {name:"+5'", val:5*60, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 ms-1"},
-                    {name:"+10'", val:600, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 ms-1"},
-                    {name:"+30'", val:1800, type:"rel", class:"btn btn-outline-info btn-sm col mt-0 ms-1"},
-                    {name:"E15'", val:this.pos_from_end(15*60), type:"abs", class:"btn btn-outline-primary btn-sm col mt-0 ms-1"},
+                    {name:'1" ', icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: white;"></i>', val:1, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},
+                    {name:'5" ', icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: white;"></i>', val:5, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},                    
+                    {name:'10" ', icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: white;"></i>', val:10, type:"rel", class:"btn btn-secondary btn-sm sb_btn"},                    
+                    {name:"1' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"5' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:5*60, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"10' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:600, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"30' ", icon: '<i class="bi bi-arrow-bar-right dbox-iconstyle" style="color: black;"></i>', val:1800, type:"rel", class:"btn btn-info btn-sm sb_btn"},
+                    {name:"15' ",icon: '<i class="bi bi-align-end dbox-iconstyle"></i>', val:this.pos_from_end(15*60), type:"abs", class:"btn btn-primary btn-sm sb_btn"},
+                    {name:"",icon: '<i class="bi bi-align-end dbox-iconstyle"></i>', val:this.pos_from_end(0), type:"abs", class:"btn btn-primary btn-sm sb_btn"},
                 ]
             }
         },
         methods: {
-            lmd() {
-                this.lmovie_dummy += 1
-                ws.send('bob ' + String(this.lmovie_dummy))
+            //lmd() {
+                //this.lmovie_dummy += 1
+                //ws.send('bob ' + String(this.lmovie_dummy))
                 //myRQStatus.sendMessage('bob')
                 // wsp.send({foo: 'bar'})
                 // Request({foo: 'bar'})
@@ -153,7 +153,29 @@
                 //     .catch(error => {
                 //         console.log('error: ' + error)
                 //     })
-            },
+            //},
+            // streamURL() {
+            //     axios.get(`${Vue.prototype.$host}/streamurl.xspf${'?'+String(Math.random())}`)
+            //         .then(response => {
+            //             console.log(response.data);
+            //         })
+            //         .catch(error => {
+            //             console.log('error: ' + error); 
+            //         })
+            // },
+            analyze() {
+                return axios.post(`${Vue.prototype.$host}/analyze`,
+                    { 
+                        movie: this.lmovie
+                    },
+                    { 
+                        headers: { 'Content-type': 'application/json', }
+                    }).then((response) => {
+                            console.log('analyze: ' + response.data);
+                    }).catch( error => { 
+                            console.log('error: ' + error); 
+                    });
+                },
             rqstatus_visible() {
                 return this.mydata.started > 0
             },
@@ -185,16 +207,49 @@
                             console.log('error: ' + error); 
                     });
                 },
+                update_serie() {
+                    return axios.post(`${Vue.prototype.$host}/update_serie`,
+                        { 
+                            serie: this.serie
+                        },
+                        { 
+                            headers: { 'Content-type': 'application/json', }
+                        }).then((response) => {
+                                console.log('serie: ' + this.serie);
+                                this.load_selection();
+                        }).catch( error => { 
+                                console.log('error: ' + error); 
+                        });
+                    },    
+                update_season() {
+                return axios.post(`${Vue.prototype.$host}/update_season`,
+                    { 
+                        season: this.season
+                    },
+                    { 
+                        headers: { 'Content-type': 'application/json', }
+                    }).then((response) => {
+                            console.log('season: ' + this.season);
+                            this.load_selection();
+                    }).catch( error => { 
+                            console.log('error: ' + error); 
+                    });
+                },
             load_selection() {
                 axios
                 //.get(`${Vue.prototype.$host}/sections`)
                 .get(`${Vue.prototype.$host}/selection`)
                 .then(response => {
-                    //console.log('in created', response.data)
+                    console.log('in created', response.data)
                     this.sections = response.data.sections;
                     this.section = response.data.section;
+                    this.section_type = response.data.section_type;
                     this.movies = response.data.movies;
                     this.movie = response.data.movie;
+                    this.seasons = response.data.seasons;
+                    this.season = response.data.season;
+                    this.series = response.data.series;
+                    this.serie = response.data.serie;
                     this.pos = str2pos(response.data.pos_time)
                     //this.loadmovies()
                 }).catch( error => { 
@@ -216,7 +271,7 @@
                 if (pos === -999) {
                     return '/static/spinner_160x90.gif'
                 } else if (pos === -998) {
-                    return '/static/white.png'
+                    return '/static/background.png'
                 } else  {
                     return  '/static/' + this.ltimeline.basename.slice(0,-4) + '_' + pos2str(pos) + this.ltimeline.basename.slice(-4) + '?' + String(Math.random())
                 }
@@ -346,60 +401,6 @@
                     }
                 })
             },
-            docut() {
-                this.show_close_button = false
-                this.movie_cut_info_promise()
-                .then(response => {
-                    this.lmovie_cut_info = response.data;
-                    //console.log("in movie_cut_info", this.lmovie_cut_info)
-                    msg = 
-`
-Cut:
-                
-section: '${this.section}'
-movie: '${this.lmovie}'
-In: ${this.t0}
-Out: ${this.t1}
-Inplace: ${this.inplace}
-.ap .sc Files ?: ${this.lmovie_cut_info.apsc}
-_cut File ?: ${this.lmovie_cut_info.cutfile}
-`
-                    console.log(msg)
-                        this.result_available = false
-                        this.eta_counter = 0
-                        myModalSlot.show()
-                        this.eta_counter_id = setInterval(function myTimer() { this.eta_counter += 1 }.bind(this), 1000);
-                        console.log(this.lmovie_cut_info)
-                        return axios.post(`${Vue.prototype.$host}/cut`,
-                            {   
-                                section: this.section, 
-                                movie_name: this.lmovie,
-                                ss: this.t0,
-                                to: this.t1,
-                                inplace: this.inplace,
-                                etaest: this.lmovie_cut_info.eta
-                            },
-                            { headers: { 'Content-type': 'application/json',}}
-                        ).then((response) => {
-                            clearInterval(this.eta_counter_id)
-                            this.toggle_timeline = false
-                            this.load_movie_info_promise()
-                            .then(response => {
-                                this.lmovie_info = response.data.movie_info
-                                this.toggle_timeline = false                        
-                            })
-                            .catch( error => { 
-                                console.log('error: ' + error); 
-                            });
-                            this.result = response.data.result
-                            this.result_available = true
-                        }).catch( error => { 
-                            console.log('error: ' + error); 
-                        });
-                    }).catch( error => { 
-                            console.log('error: ' + error); 
-                    });
-            },
             docut2() {
                 this.show_close_button = false
                 this.movie_cut_info_promise()
@@ -436,7 +437,8 @@ _cut File ?: ${this.lmovie_cut_info.cutfile}
                             { headers: { 'Content-type': 'application/json',}}
                         ).then((response) => {
                             clearInterval(this.eta_counter_id)
-                            this.mydata.title = 'starting ...'
+                            this.mydata.title = ' ... '
+                            this.apsc_size = 0
                             this.mydata.progress = 0
                             this.mydata.started = 1
                             this.mydata_timer_id = setInterval(function mdTimer() {
@@ -445,8 +447,8 @@ _cut File ?: ${this.lmovie_cut_info.cutfile}
                                     this.mydata = response.data
                                     console.log(this.mydata)
                                     if (this.mydata.started == 0) {
-                                        clearInterval(this.mydata_timer_id)
                                         this.mydata.started = 0 
+                                        clearInterval(this.mydata_timer_id)
                                     }
                                 })
                                 .catch(error => { 

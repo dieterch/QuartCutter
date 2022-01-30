@@ -1,7 +1,23 @@
+:root {
+    --bg-light: rgb(92,92,92);
+    --bg-mid: rgb(63,63,63);
+    --bg-dark: rgb(36,36,36);
+    --bg-info: lightgray;
+    --bg-pic: black;
+}
+
+:root {
+    --bg-light: rgb(99, 102, 153);
+    --bg-mid: rgb(88, 87, 185);
+    --bg-dark: rgb(16, 4, 77);
+    --bg-info: rgb(156, 195, 212);
+    --bg-pic: black;
+}
+
 body {
     height: 90vh;
     margin: 8px 0px 8px 8px;
-    background: rgb(36, 36, 36);
+    background: var(--bg-dark);
 }
 
 .btn:focus {
@@ -19,8 +35,8 @@ body {
     "cutbar1 cutbar2"
     "main sidebar"
     "footer footer";
-    background: rgb(36, 36, 36);
-    border: 3px solid rgb(36, 36, 36);
+    background: var(--bg-dark);
+    border: 3px solid var(--bg-dark);
     gap: 0px;
 }
 
@@ -31,7 +47,7 @@ body {
 }
 
 .dbox-header {
-    background: rgb(63, 62, 62);
+    background: var(--bg-mid);
     color: white;
     justify-content: left;
     grid-area: header;
@@ -77,10 +93,10 @@ body {
     grid-area: cutbar2;
 }
 
-.dbox-iconstyle {
+/* .dbox-iconnstyle {
     font-size: 0.9rem; 
     color: rgb(228, 230, 235);
-}
+} */
 
 .dbox-cutbar2-btn {
     width: 50px;
@@ -96,13 +112,13 @@ body {
 
 .url {
     font-size: xx-small;
-    color: rgb(99, 99, 99);
+    color: var(--bg-light);
 }
 
 .dbox-footer {
     display: block;
     height: 2.5rem;
-    background: rgb(63, 62, 62);
+    background: var(--bg-mid);
     color: white;
     grid-area: footer;
     justify-content: left;
@@ -127,7 +143,7 @@ body {
 }
 
 .sb-info {
-    border: 5px solid rgb(90, 90, 90);
+    border: 5px solid var(--bg-light);
     border-radius: 2px;
 }
 
@@ -135,7 +151,7 @@ body {
     font-size: 1.5em;
     grid-column: 1 / -1;
     grid-row: 1;
-    background: lightgrey;
+    background: var(--bg-info);
     margin: 0px 5px 1px 5px;
 }
 
@@ -143,7 +159,7 @@ body {
     font-size: 1em;
     grid-column: 1 / -1;
     grid-row: 2;
-    background: lightgrey;
+    background: var(--bg-info);
     margin: 1px 5px 1px 5px;   
 }
 
@@ -152,7 +168,7 @@ body {
     grid-column: 1 / -1;
     grid-row: 3;
     margin: 1px 5px 5px 5px;
-    background: rgb(36, 36, 36);
+    background: var(--bg-dark);
     color: white; 
 }
 
@@ -187,13 +203,13 @@ body {
 .dbox-main-detail {
     flex-direction: row;
     justify-content: stretch;
-    background: black;
+    background: var(--bg-pic);
     grid-column: 1;
     grid-row: 1;
 }
 
 .dbox-main {
-    background: black;
+    background: var(--bg-pic);
     grid-column: 1;
     grid-row: 2;
 }

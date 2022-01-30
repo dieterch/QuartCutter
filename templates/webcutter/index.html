@@ -68,7 +68,7 @@
         <!-- Header -->
         <div class="dbox dbox-header">
             <!--div class="dbox-content">Quart Web Cutter</div-->
-            <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: inherit; height: 100%;">
+            <nav class="navbar navbar-expand-sm navbar-dark" style="background-color: inherit; height: 100%;">
                 <div class="container-fluid">
                   <a class="navbar-brand" href="#">Quart Web Cutter</a>
                   <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,12 +87,34 @@
                       </li-->
                       <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                          Section
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                          <li><a class="dropdown-item" href="/force_update_section" >Force Update</a></li>
+                          <li><a class="dropdown-item" href="/streamsection.xspf" download="">Section Playlist to VLC</a></li>
+                        </ul>
+                    </li>
+                      <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                           Movie
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                          <li><a class="dropdown-item" role="button" @click="analyze()">Analyze</a></li>
+                          <li><a class="dropdown-item" role="button" @click="analyze()">Analyze Movie</a></li>
                           <li><a class="dropdown-item" href="/streamurl.xspf" download="">Stream to VLC</a></li>
                           <li><a class="dropdown-item" href="/streamsection.xspf" download="">Section Playlist to VLC</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Plex
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <li><a class="dropdown-item" role="button" >Tidy up double Recordings</a></li>
+                            <li><a class="dropdown-item" role="button" >Set Plex Record Name from Filename in Selection</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_section()">Analyze Section</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_series()">Analyze Series</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_season()">Analyze Season</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_movies()">Analyze Movies</a></li>
                         </ul>
                       </li>
                     </ul>
@@ -290,5 +312,5 @@
     <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
     <script src="{{ url_for('static', filename='js/components/Modal.js') }}"></script>
     <!--script src="{{ url_for('static', filename='js/components/RQStatus.js') }}"></script-->
-    <script src="{{ url_for('static', filename='js/App2.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/App.js') }}"></script>
 {% endblock %}

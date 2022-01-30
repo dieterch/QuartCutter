@@ -245,7 +245,7 @@ async def force_update_section():
     global selection
     await _update_section(selection['section'].title, force=True)        
     print(f"force_update_section.")
-    return 'force update section'
+    return redirect(url_for('index'))
 
 # movie related stuff
 async def _update_movie(movie_name):
