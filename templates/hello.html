@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<title>Hello from Flask</title>
+
+<body>
+    <button type="button" id="clickme1" onclick="doFunction();">JQuery Post</button>
+    <button type="button" id="clickme2" onclick="doAxiosFunction();">Axios Post</button>
+    <button type="button" id="clickme3" onclick="load_movie_info_promise();">Axios Post 2</button>
+    <button type="button" id="clickme4" onclick="get_frame('00:10:00');">get_frame</button>
+    <!--button type="button" id="clickme4" onclick="doFunctionTest();">Test Post</button-->
+    <h1> Hello, World!</h1>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function doFunction() {
+            const name = 'ddd'
+            $.ajax({
+                url: "{{ url_for('endpoint') }}",
+                type: 'POST',
+                data: {
+                    section: "Plex Recordings",
+                    movie: "Silence"
+                },
+                success: function (response) {
+                    console.log(response)
+                },
+                error: function (response) {
+                    console.log(response)                    
+                }
+            });
+        };
+
+        function doFunctionTest() {
+            $.ajax({
+                url: "http://192.168.15.65:5100/movie_info",
+                type: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                data: { 
+                    section: "Plex Recordings",
+                    movie: "Silence"
+                },
+                success: function (response) {
+                    console.log(response)
+                },
+                error: function (response) {
+                    console.log(response)                    
+                }
+            });
+        };
+
+        function doAxiosFunction() {
+            console.log("{{ url_for('endpoint') }}",)
+            axios({
+                method: 'post',
+                url: "{{ url_for('endpoint') }}",
+                data: {
+                    section: "Plex",
+                    movie: "Starwars"
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then( function (response) {
+                console.log(response)
+            })
+            .catch( function (error) {
+                console.log(error)
+            });
+            
+        };
+
+        function load_movie_info_promise() {
+            console.log("{{ url_for('endpoint') }}",)
+            axios({
+                method: 'post',
+                url: "{{ url_for('endpoint') }}",
+                data: {
+                    section: "Plex",
+                    movie: "Starwars"
+                },
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then( function (response) {
+                console.log(response)
+            })
+            .catch( function (error) {
+                console.log(error)
+            });
+            
+        };
+
+        function get_frame(pos) {
+                console.log(`in load frame ... request ${pos}`)
+                console.log("{{ url_for('frame') }}")
+                axios({
+                    method: 'post',
+                    url: "{{ url_for('frame') }}",
+                    data: { 
+                        pos_time: pos,
+                        movie_name: "Silence"
+                    },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }                    
+                })
+                .then( function (response) {
+                console.log(response)
+                })
+                .catch( function (error) {
+                    console.log(error)
+                });
+            };
+
+        //     console.log("{{ url_for('endpoint') }}",)
+        //     axios.post("{{ url_for('endpoint') }}",
+        //         { 
+        //             section: "Plex",
+        //             movie: "Starwars"
+        //         },
+        //         { headers: {
+        //             'Content-type': 'application/json',
+        //         }
+        //     })
+        //     .then( function (response) {
+        //         console.log(response)
+        //     })
+        //     .catch( function (error) {
+        //         console.log(error)
+        //     });
+        // };
+    </script>
+</body>

@@ -1,0 +1,1 @@
+mount -t cifs -o credentials=/etc/smbcredentials,uid=1000,gid=1000 //192.168.15.10/series/ /media/NAS

@@ -1,0 +1,311 @@
+{% extends 'base.html' %} 
+{% block title %}Quart Web Cutter{% endblock %}
+
+
+{% block modal %}
+    <!-- ANFANG -- Modal -->
+    <ModalSlot :showclosebutton="show_close_button">
+        <template v-slot:header>
+        <h4 class="modal-title" id="staticBackdropLabelSlot">[[ movie ]]</h4>
+        <!--button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" v-if="show_close_button"></button-->
+        </template>
+    
+        <template v-slot:body>
+        <div class="container-fluid" v-if="!result_available">
+        <div class="row">
+            <div class="col-md-4">Section:</div>
+            <div class="col-md-4">[[ section ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">Duration Raw:</div>
+            <div class="col-md-4">[[ lmovie_info.duration ]] min</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">Duration Cut:</div>
+            <div class="col-md-4">[[ duration_cut ]] min</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">In:</div>
+            <div class="col-md-4">[[ t0 ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">Out:</div>
+            <div class="col-md-4">[[ t1 ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">.ap. sc Files:</div>
+            <div class="col-md-4">[[ lmovie_cut_info.apsc ]]</div>
+        </div>
+        <div class="row">
+            <div class="col-md-4"> cut File:</div>
+            <div class="col-md-4">[[ lmovie_cut_info.cutfile ]]</div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-4">ETA:</div>
+            <div class="col-md-4">[[ lmovie_cut_info.eta ]] sec, [[ eta_counter ]] sec</div>
+        </div>
+        </div>
+        <div class="container-fluid" v-else>
+        <div class="row">
+            <pre class="col-md-12">[[ result ]]</pre>
+        </div>                                        
+        </div>                            
+        </template>
+
+        <template v-slot:footer>
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal" v-if="result_available">Close</button>
+            <br v-else>
+        </template>
+    </ModalSlot>
+    <!--- ENDE -->
+{% endblock %}
+
+{% block content %} 
+    <!--button data-copy="This text has been copied from the data-copy attribute of the button.">copy text in data-copy attribute</button-->
+
+    <div class="dcontainer">
+        <!-- Header -->
+        <div class="dbox dbox-header">
+            <!--div class="dbox-content">Quart Web Cutter</div-->
+            <nav class="navbar navbar-expand-sm navbar-dark" style="background-color: inherit; height: 100%;">
+                <div class="container-fluid">
+                  <a class="navbar-brand" href="#">Quart Web Cutter</a>
+                  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                  </button>
+                  <div class="collapse navbar-collapse" id="navbarNavDropdown">
+                    <ul class="navbar-nav">
+                      <!--li class="nav-item">
+                        <a class="nav-link" href="#">Pricing</a>
+                      </li-->
+                      <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                          Section
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                          <li><a class="dropdown-item" href="/force_update_section" >Force Update</a></li>
+                          <li><a class="dropdown-item" href="/streamsection.xspf" download="">Section Playlist to VLC</a></li>
+                          <li><a class="dropdown-item" href="/streamall.xspf" download="">Section Playlist All to VLC</a></li>
+                        </ul>
+                    </li>
+                      <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                          Movie
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                          <li><a class="dropdown-item" role="button" @click="analyze()">Analyze Movie</a></li>
+                          <li><a class="dropdown-item" href="/streamurl.xspf" download="">Stream to VLC</a></li>
+                          <li><a class="dropdown-item" href="/streamsection.xspf" download="">Section Playlist to VLC</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Plex
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            <li><a class="dropdown-item" role="button" >Tidy up double Recordings</a></li>
+                            <li><a class="dropdown-item" role="button" >Set Plex Record Name from Filename in Selection</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_section()">Analyze Section</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_series()">Analyze Series</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_season()">Analyze Season</a></li>
+                            <li><a class="dropdown-item" role="button" @click="analyze_movies()">Analyze Movies</a></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </nav>
+        </div>
+
+        <!-- Dropbars -->
+        <div class="dbox dbox-dropbar">
+            <div class="dropbox dbox-content">
+                <label class="drop-label" for="vueSectionID" >[[ totalsections ]] Sections</label>
+                <select id="vueSectionID" v-model='section' class="form-select" @change="update_section">
+                        <option v-for="sec in sections" v-bind:value="sec">
+                            [[ sec ]]
+                        </option>            
+                </select>
+            </div>
+            <div class="dropbox dbox-content" v-if="section_type == 'show'">
+                <label class="drop-label" for="vueSeriesID" >[[ totalseries ]] Series</label>
+                <select id="vueSeriesID" v-model='serie' class="form-select" @change="update_serie">
+                    <option v-for="serie in series" v-bind:value="serie">
+                        [[ serie ]]
+                    </option>                               
+                </select>
+            </div>
+            <div class="dropbox dbox-content" v-if="section_type == 'show'">
+                <label class="drop-label" for="vueSeasonsID" >[[ totalseasons ]] Seasons</label>
+                <select id="vueSeasonsID" v-model='season' class="form-select" @change="update_season">
+                    <option v-for="season in seasons" v-bind:value="season">
+                        [[ season ]]
+                    </option>            
+                </select>
+            </div>
+            <div class="dropbox dbox-content">
+                <label class="drop-label" for="vueMovieID" v-if="section_type == 'show'">[[ totalmovies ]] Movies</label>
+                <label class="drop-label" for="vueMovieID" v-else>[[ totalmovies ]] recently added Movies</label>
+                <select id="vueMovieID" v-model='movie' class="form-select" >
+                    <option v-for="movie in movies" v-bind:value="movie">
+                        [[ movie ]]
+                    </option>                               
+                </select>
+            </div>
+            <!--div class="col badge bg-light col-auto me-1 my-auto"><button class="btn btn-outline-primary" @click="lmd()">↺ [[ lmovie_dummy ]]</button></div-->
+        </div>
+
+        <!-- logo -->
+        <div class="dbox">
+            <img class="dbox-logo" src="/static/logo_light.png" alt="Logo">
+        </div>
+
+        <!-- CutBar -->
+        <!-- cut Movie Action Bar START -->
+        <div class="dbox dbox-cutbar1">
+
+                <div class="col badge bg-primary me-2" v-if="t0_valid">
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">
+                        <i class="bi bi-align-end dbox-iconstyle"></i> [[ t0 ]] 
+                    </button>
+                </div>
+                <div class="col badge bg-primary me-2" v-else>
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t0'})">
+                        <i class="bi bi-align-end dbox-iconstyle"></i> -- : -- : --
+                    </button>
+                </div>
+
+                <div class="col badge bg-primary me-2" v-if="t1_valid">
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">
+                        [[ t1 ]] <i class="bi bi-align-start dbox-iconstyle"></i>
+                    </button>
+                </div>
+                <div class="col badge bg-primary me-2" v-else>
+                    <button class="btn btn-primary btn-sm" @click="hpos({type:'t1'})">
+                        -- : -- : -- <i class="bi bi-align-start dbox-iconstyle"></i>
+                    </button>
+                </div>
+
+                <div class="col badge bg-primary me-2" v-if="cut_ok">
+                    <button class="btn btn-primary btn-sm" @click="toggle_inplace">
+                        Inplace 
+                        <i class="bi bi-toggle-on dbox-iconstyle" v-if="inplace"></i>
+                        <i class="bi bi-toggle-off dbox-iconstyle" v-else></i>
+                    </button>
+                </div>
+                <div class="col badge bg-secondary me-2" v-else>
+                    <button class="btn btn-outline-secondary text-light btn-sm" disabled>
+                        Inplace 
+                        <i class="bi bi-toggle-on dbox-iconstyle" v-if="inplace"></i>
+                        <i class="bi bi-toggle-off dbox-iconstyle" v-else></i>
+                    </button>
+                </div>
+
+                <!--div class="col badge bg-danger me-1" v-if="cut_ok"><button class="btn btn-danger btn-sm" @click="docut">Cut old</button></div>
+                <div class="col badge bg-secondary me-1" v-else><button class="btn btn-outline-secondary text-light btn-sm" disabled>Cut</button></div-->
+
+                <div class="col badge bg-danger" v-if="cut_ok">
+                    <button class="btn btn-danger btn-sm" @click="docut2">
+                        Cut <i class="bi bi-scissors dbox-iconstyle"></i>
+                    </button>
+                </div>
+                <div class="col badge bg-secondary" v-else>
+                    <button class="btn btn-outline-secondary text-light btn-sm" disabled>
+                        Cut <i class="bi bi-scissors dbox-iconstyle"></i>
+                    </button>
+                </div>
+        </div>  
+
+        <div class="dbox dbox-cutbar2">
+                <!--button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_minus_timeline(lpos)"><</button-->       
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_minus_timeline(lpos)">
+                    <i class="bi bi-arrow-left-square dbox-iconstyle" ></i>
+                </button>       
+                <!--button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="toggle_and_timeline(lpos)">@</button-->
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="toggle_and_timeline(lpos)">
+                    <i class="bi bi-film dbox-iconstyle" ></i>
+                </button>
+                <!--button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_plus_timeline(lpos)">></button-->        
+                <button class="btn btn-primary btn-sm dbox-cutbar2-btn" @click="page_plus_timeline(lpos)">
+                    <i class="bi bi-arrow-right-square dbox-iconstyle" ></i>
+                </button>        
+        </div>
+        <!-- cut Movie Action Bar ENDE -->
+
+        <!-- Main -->
+        <div class="main_container">
+
+            <div class="dbox dbox-main-detail" v-if="toggle_timeline">
+                <a v-for="ival in ltimeline.larray" @click="hpos({val: ival, type:'abs'})"><img  :src="pos2fname(ival)" class="mx-auto" width="100%"></a> 
+            </div>
+            
+            <div class="dbox dbox-main">
+                <div>
+                    <!-- Frame START -->    
+                    <img :src="frame_name" class="frame" alt="... loading ...">
+                    <!-- Frame ENDE --> 
+                </div>  
+            </div>
+
+        </div>
+
+        <!-- SideBar -->
+        <div class="dbox dbox-sidebar">
+            <div class="sb_container">
+                <div class="sb_box sb_box-pos sb-info">
+                    <div class="sb_box-content">
+                        [[ pos ]]
+                    </div>
+                </div>
+
+                <div class="sb_box sb_box-pos2 sb-info">
+                    <div class="sb_box-content">
+                        [[ Math.trunc(lpos / 60) ]]'
+                    </div>
+                </div>
+                
+                <div class="sb_box sb_box-len ">
+                    <div class="sb_box-content">
+                        [[ lmovie_info.duration ]]'
+                    </div>
+                </div>
+
+                <div class="sb_box sb_box-buttons1">
+                    <button :class="b.class" v-for="b in bleft" :style="(-b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">
+                        <span v-html="b.icon"></span><span>[[ b.name ]]</span>
+                    </button>
+                </div>
+
+                <div class="sb_box sb_box-buttons2">
+                    <button :class="b.class" v-for="b in bright" :style="(b.val == ltimeline.step) ? 'text-decoration: overline;' : 'text-decoration: none'" @click="hpos(b)">
+                        <span>[[ b.name ]]</span><span v-html="b.icon"></span>
+                    </button>
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="dbox dbox-footer">
+            <div id="rqstatus" class="dbox-footer-content">
+                <span v-if="rqstatus_visible()">Cut: '[[ mydata.title ]]' apsc: [[ Math.trunc(mydata.apsc_size / 1024) ]] kB progress: [[ mydata.progress ]]%</span>
+                <span v-else>Cut: -</span>
+            </div>
+            <div class="dbox-footer-content url">
+                [[ lmovie_info.streamURL ]]
+            </div>
+        </div>    
+    </div>
+{% endblock %} 
+
+{% block script %}
+    <script>
+        Vue.prototype.$host = "http://{{ host }}"
+        Vue.prototype.$ws = "ws://{{ host }}"
+    </script>
+    <script src="{{ url_for('static', filename='js/tools.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/components/Modal.js') }}"></script>
+    <!--script src="{{ url_for('static', filename='js/components/RQStatus.js') }}"></script-->
+    <script src="{{ url_for('static', filename='js/App.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,8 @@
+cp quartcutter.service /etc/systemd/system
+cp quartworker.service /etc/systemd/system
+systemctl start quartcutter
+systemctl enable quartcutter
+systemctl start quartworker
+systemctl enable quartworker
+systemctl daemon-reload
+

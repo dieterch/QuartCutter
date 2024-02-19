@@ -1,0 +1,26 @@
+.navbar {
+    background-color:hsl(160, 4%, 17%);
+  }
+  
+  .pos {
+    text-align:center;
+    font-size: 1.3em;
+  }
+  
+  .col-md-auto,
+  .col-auto,
+  .col,
+  .col-1,
+  .col-2,
+  .col-3,
+  .col-4,
+  .col-5,
+  .col-6,
+  .test {
+      background-color: aliceblue;
+      border-color: black;
+      border-width: 1px;
+      border-style: dashed;
+  }
+
+  

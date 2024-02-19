@@ -1,0 +1,2 @@
+mcedit /etc/systemd/system/quartworker.service
+systemctl daemon-reload

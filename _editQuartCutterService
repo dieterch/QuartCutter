@@ -1,0 +1,2 @@
+mcedit /etc/systemd/system/quartcutter.service
+systemctl daemon-reload
