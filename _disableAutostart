@@ -1,1 +1,2 @@
 systemctl disable quartcutter
+systemctl disable quartworker
